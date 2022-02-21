@@ -1,0 +1,107 @@
+# This is a workflow created to run based on a commit made by AWS Proton
+# It only works if there is only one resource modified as part of the commit.
+
+name: 'proton-run'
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**'
+      - 'env_config.json'
+      - 'templates/**'
+
+jobs:
+  get-deployment-data:
+    name: Get Deployment Data
+    runs-on: ubuntu-latest
+    
+    outputs:
+      role-arn: ${{ steps.get-data.outputs.role-arn }}
+      environment: ${{ steps.get-data.outputs.environment }}
+      resource-arn: ${{ steps.get-data.outputs.resource-arn }}
+      working-directory: ${{ steps.get-data.outputs.working-directory }}
+      deployment-id: ${{ steps.get-data.outputs.deployment-id }}
+      region: ${{ steps.get-data.outputs.region }}
+      bucket: ${{ steps.get-data.outputs.bucket }}
+    
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v2
+      
+    - name: Get changed files
+      id: files
+      uses: jitterbit/get-changed-files@v1
+      
+    - name: Find modified resource
+      id: find-modified
+      run: |
+        found=false
+        for changed_file in ${{ steps.files.outputs.all }}; do
+          if [[ "$changed_file" == *".proton/deployment-metadata.json" ]]; then
+            echo "found file"
+            if [[ "$found" == true ]]; then
+              echo "More than one resource found to have a new deployment, I'm not sure which one to update, exiting."
+              exit 0
+            fi
+            echo "setting found to true"
+            found=true
+            echo "setting outputs"
+            echo "::set-output name=deployment-metadata-path::$changed_file"
+          fi
+        done
+    
+    - name: Get data
+      id: get-data
+      run: |
+        modified_resource_arn=$(jq -r '.resourceMetadata.arn' ${{ steps.find-modified.outputs.deployment-metadata-path }})
+        echo "::set-output name=resource-arn::$modified_resource_arn"
+        deployment_id=$(jq -r '.deploymentId' ${{ steps.find-modified.outputs.deployment-metadata-path }})
+        echo "::set-output name=deployment-id::$deployment_id"
+        if [[ "$modified_resource_arn" == *":environment/"* ]]; then
+          environment_name=${modified_resource_arn##*/}
+          working_directory="$environment_name/"
+        elif [[ "$modified_resource_arn" == *"/service-instance/"* ]]; then
+          environment_arn=$(jq -r '.resourceMetadata.environmentArn' ${{ steps.find-modified.outputs.deployment-metadata-path }})
+          environment_name=${environment_arn##*/}
+          resource_portion=${modified_resource_arn##*:}
+          IFS='/'
+          read -a split_resources <<< "$resource_portion"
+          service_name=${split_resources[1]}
+          instance_name=${split_resources[3]}
+          working_directory=$environment_name/$service_name-$instance_name/
+        elif [[ "$modified_resource_arn" == *"/pipeline"* ]]; then
+          environment_name="pipeline"
+          resource_portion=${modified_resource_arn##*:}
+          IFS='/'
+          read -a split_resources <<< "$resource_portion"
+          service_name=${split_resources[1]}
+          working_directory=pipeline/$service_name
+        fi
+        echo "::set-output name=working-directory::$working_directory"
+        echo "::set-output name=environment::$environment_name"
+        
+        role_arn=$(jq -r --arg env $environment_name '.[$env]["role"]' env_config.json)
+        echo "::set-output name=role-arn::$role_arn"
+        region=$(jq -r --arg env $environment_name '.[$env]["region"]' env_config.json)
+        echo "::set-output name=region::$region"
+        bucket=$(jq -r --arg env $environment_name '.[$env]["bucket"]' env_config.json)
+        echo "::set-output name=bucket::$bucket"
+    
+  call-terraform-workflow:
+    needs: get-deployment-data
+    uses: askulkarni2/eks-blueprint-proton-template/.github/workflows/terraform.yml@main
+    with:
+      role_arn: ${{ needs.get-deployment-data.outputs.role-arn }}
+      bucket: ${{ needs.get-deployment-data.outputs.bucket }}
+      environment: ${{ needs.get-deployment-data.outputs.environment }}
+      resource_arn: ${{ needs.get-deployment-data.outputs.resource-arn }}
+      working_directory: ${{ needs.get-deployment-data.outputs.working-directory }}
+      deployment_id: ${{ needs.get-deployment-data.outputs.deployment-id }}
+      aws_region: ${{ needs.get-deployment-data.outputs.region }}

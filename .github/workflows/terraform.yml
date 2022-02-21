@@ -1,0 +1,118 @@
+name: 'Terraform'
+
+on:
+  workflow_call:
+    inputs:
+      role_arn:
+        description: 'AWS IAM Role ARN to use to deploy with'
+        required: true
+        type: string
+      bucket:
+        description: 'S3 bucket for state'
+        required: true
+        type: string
+      environment:
+        description: 'Environment name getting deployed'
+        required: true
+        type: string
+      aws_region:
+        description: 'AWS region'
+        required: false
+        default: 'us-west-2'
+        type: string
+      working_directory:
+        description: 'Directory containining the terraform code to run'
+        required: true
+        type: string
+      resource_arn:
+        description: 'Arn for resource getting deployed'
+        required: true
+        type: string
+      deployment_id:
+        description: 'Deployment id for current run provided in proton deployment metadata file'
+        required: true
+        type: string
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    
+      
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+        shell: bash # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v2
+      continue-on-error: true
+    
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: ${{ inputs.aws_region }}
+        role-to-assume: ${{ inputs.role_arn }}
+        role-session-name: TF-Github-Actions
+        role-duration-seconds: 3600
+      continue-on-error: true
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.0.11
+        terraform_wrapper: false
+      continue-on-error: true
+
+    #######################################################
+    # MAKE SURE TO UPDATE THE BUCKET TO YOUR STATE BUCKET #
+    #######################################################
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform init -backend-config="bucket=${{ inputs.bucket }}" -backend-config="key=${{ inputs.environment }}-terraform.tfstate" -backend-config="region=us-east-2"
+      continue-on-error: true
+
+    # On push to main, build or change infrastructure according to Terraform configuration files
+    # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+    - name: Terraform Apply
+      id: tf_apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -auto-approve
+      continue-on-error: true
+
+    # This is a temporary measure until we have launched
+    - name: Install Proton Model
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        aws s3 cp s3://aws-proton-preview-public-files/model/proton-2020-07-20.normal.json  .
+        aws configure add-model --service-model "file://proton-2020-07-20.normal.json" --service-name proton
+
+      
+    - name: Notify Proton Success
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.tf_apply.outcome == 'success'
+      run: |
+        # Get outputs as json
+        outputs_json=$(terraform output -json)
+
+        # The outputs parameters expects a list of key=keyName,valueString=value key=key2Name,valueString=value2 etc...
+        # So here we convert the output json into a shell array
+        # NOTE: This will probably not play nicely with complex output objects (non primitives)
+
+        formatted_outputs=( $(echo $outputs_json | jq -r "to_entries|map(\"key=\(.key),valueString=\(.value.value|tostring)\")|.[]") )
+
+        # Notify proton
+        aws proton notify-resource-deployment-status-change --resource-arn ${{ inputs.resource_arn }} --status SUCCEEDED --deployment-id ${{ inputs.deployment_id }} --outputs $formatted_outputs
+        echo "Notify success!"   
+        
+    - name: Notify Proton Failure
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.tf_apply.outcome != 'success'
+      run: |
+        aws proton notify-resource-deployment-status-change --resource-arn ${{ inputs.resource_arn }} --status FAILED --deployment-id ${{ inputs.deployment_id }}
+        echo "Notify failure!"

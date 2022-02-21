@@ -1,0 +1,55 @@
+Parameters:
+  FullRepoName:
+    Type: String
+  ThumbprintList:
+    Type: List<String>
+
+Resources:
+  Role:
+    Type: AWS::IAM::Role
+    # Creates the role that will be passed to Terraform to be able to deploy
+    # infrastructure in your AWS account. You will enter this role in your
+    # env_config.json file
+    # Note that this role has administrator access to your account, so that
+    # it can be used to provision any infrastructure in your templates. We
+    # recommend you scope down the role permissions to the resources that will be used
+    # in your Proton templates
+    Properties:
+      RoleName: ExampleGithubRole
+      ManagedPolicyArns: [arn:aws:iam::aws:policy/AdministratorAccess]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRoleWithWebIdentity
+            Principal:
+              Federated: !Ref GithubOidc
+            Condition:
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub repo:${FullRepoName}:*
+
+  GithubOidc:
+    # This identity provider is required to accept OpenID Connect credentials
+    # from GitHub
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ThumbprintList: !Ref ThumbprintList
+      ClientIdList:
+        - sts.amazonaws.com
+
+  StateFileBucket:
+    # This bucket will be used to store your Terraform Open Source state files
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Join
+       - ''
+       - - 'aws-proton-terraform-bucket-'
+         - !Ref AWS::AccountId
+Outputs:
+  Role:
+    Description: "The role that will be used to provision infrastructure. Enter it in your env_config.json file"
+    Value: !GetAtt Role.Arn
+
+  BucketName:
+    Description: "Name of the bucket for our state files. Enter it in your env_config.json file"
+    Value: !Ref StateFileBucket
