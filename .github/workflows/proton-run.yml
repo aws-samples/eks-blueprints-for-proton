@@ -172,7 +172,7 @@ jobs:
       - name: Terraform Apply
         id: tf_apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
+        run: terraform apply -auto-approve
 
   notify-proton:
     name: 'Notify Proton'
