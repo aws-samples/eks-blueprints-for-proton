@@ -107,11 +107,11 @@ jobs:
           echo "::set-output name=working_directory::$working_directory"
           echo "::set-output name=environment::$environment_name"
           
-          role_arn=$(jq -r --arg env $environment_name '.[$env]["role"]' env_config.json)
+          role_arn=$(jq -r '.["all_clusters"]["role"]' env_config.json)
           echo "::set-output name=role_arn::$role_arn"
-          target_region=$(jq -r --arg env $environment_name '.[$env]["region"]' env_config.json)
+          target_region=$(jq -r '.["all_clusters"]["region"]' env_config.json)
           echo "::set-output name=target_region::$target_region"
-          state_bucket=$(jq -r --arg env $environment_name '.[$env]["state_bucket"]' env_config.json)
+          state_bucket=$(jq -r '.["all_clusters"]["state_bucket"]' env_config.json)
           echo "::set-output name=state_bucket::$state_bucket"
   terraform:
     name: 'Terraform'
