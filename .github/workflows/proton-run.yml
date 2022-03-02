@@ -100,10 +100,6 @@ jobs:
             service_name=${split_resources[1]}
             working_directory=pipeline/$service_name
           fi
-          if [[ $(jq -r --arg env $environment_name 'has($env)' env_config.json) = "false" ]]; then
-            echo "Missing $env from env_config.json, existing"
-            exit 1
-          fi
           echo "::set-output name=working_directory::$working_directory"
           echo "::set-output name=environment::$environment_name"
           
