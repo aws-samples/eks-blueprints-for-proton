@@ -16,7 +16,7 @@ THUMBPRINT=$(echo | openssl s_client -servername $HOST -showcerts -connect $HOST
 # Create CloudFormation Stack
 aws cloudformation create-stack --stack-name aws-proton-terraform-role-stack \
    --template-body file:///$PWD/GitHubConfiguration.yaml \
-   --parameters ParameterKey=FullRepoName,ParameterValue=$GITHUB_USER/eks-blueprint-proton-template \
+   --parameters ParameterKey=FullRepoName,ParameterValue=$GITHUB_USER/eks-blueprints-for-proton \
    ParameterKey=ThumbprintList,ParameterValue=$THUMBPRINT \
    --capabilities CAPABILITY_NAMED_IAM
 
