@@ -1,0 +1,7 @@
+{
+  "eks001": {
+    "role": "arn:aws:iam::693935722839:role/ExampleGithubRole",
+    "region": "us-west-2",
+    "bucket": "aws-proton-terraform-bucket-693935722839"
+  }
+}
