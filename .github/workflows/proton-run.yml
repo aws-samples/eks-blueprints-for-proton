@@ -4,104 +4,232 @@
 name: 'proton-run'
 
 on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+    paths:
+      - '**/.proton/deployment-metadata.json'
   push:
     branches:
       - main
-    paths-ignore:
-      - '.github/**'
-      - 'env_config.json'
-      - 'templates/**'
+    paths:
+      - '**/.proton/deployment-metadata.json'
 
 jobs:
   get-deployment-data:
     name: Get Deployment Data
     runs-on: ubuntu-latest
-    
+
     outputs:
-      role-arn: ${{ steps.get-data.outputs.role-arn }}
+      role_arn: ${{ steps.get-data.outputs.role_arn }}
       environment: ${{ steps.get-data.outputs.environment }}
-      resource-arn: ${{ steps.get-data.outputs.resource-arn }}
-      working-directory: ${{ steps.get-data.outputs.working-directory }}
-      deployment-id: ${{ steps.get-data.outputs.deployment-id }}
-      region: ${{ steps.get-data.outputs.region }}
-      bucket: ${{ steps.get-data.outputs.bucket }}
-    
+      resource_arn: ${{ steps.get-data.outputs.resource_arn }}
+      working_directory: ${{ steps.get-data.outputs.working_directory }}
+      deployment_id: ${{ steps.get-data.outputs.deployment_id }}
+      target_region: ${{ steps.get-data.outputs.target_region }}
+      proton_region: ${{ steps.get-data.outputs.proton_region }}
+      state_bucket: ${{ steps.get-data.outputs.state_bucket }}
+
     permissions:
       id-token: write
       contents: read
-    
+
+    continue-on-error: true
+
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v2
-      
-    - name: Get changed files
-      id: files
-      uses: jitterbit/get-changed-files@v1
-      
-    - name: Find modified resource
-      id: find-modified
-      run: |
-        found=false
-        for changed_file in ${{ steps.files.outputs.all }}; do
-          if [[ "$changed_file" == *".proton/deployment-metadata.json" ]]; then
-            echo "found file"
-            if [[ "$found" == true ]]; then
-              echo "More than one resource found to have a new deployment, I'm not sure which one to update, exiting."
-              exit 0
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get changed files
+        id: files
+        uses: jitterbit/get-changed-files@v1
+
+      - name: Find modified resource
+        id: find-modified
+        run: |
+          found=false
+          for changed_file in ${{ steps.files.outputs.all }}; do
+            if [[ "$changed_file" == *".proton/deployment-metadata.json" ]]; then
+              echo "found file"
+              if [[ "$found" == true ]]; then
+                echo "More than one resource found to have a new deployment, I'm not sure which one to update, exiting."
+                exit 1
+              fi
+              echo "setting found to true"
+              found=true
+              echo "setting outputs"
+              echo "::set-output name=deployment-metadata-path::$changed_file"
             fi
-            echo "setting found to true"
-            found=true
-            echo "setting outputs"
-            echo "::set-output name=deployment-metadata-path::$changed_file"
+          done
+          if [[ "$found" == false ]]; then
+            echo "No change made to deployment-metadata.json, exiting"
+            exit 1
           fi
-        done
-    
-    - name: Get data
-      id: get-data
-      run: |
-        modified_resource_arn=$(jq -r '.resourceMetadata.arn' ${{ steps.find-modified.outputs.deployment-metadata-path }})
-        echo "::set-output name=resource-arn::$modified_resource_arn"
-        deployment_id=$(jq -r '.deploymentId' ${{ steps.find-modified.outputs.deployment-metadata-path }})
-        echo "::set-output name=deployment-id::$deployment_id"
-        if [[ "$modified_resource_arn" == *":environment/"* ]]; then
-          environment_name=${modified_resource_arn##*/}
-          working_directory="$environment_name/"
-        elif [[ "$modified_resource_arn" == *"/service-instance/"* ]]; then
-          environment_arn=$(jq -r '.resourceMetadata.environmentArn' ${{ steps.find-modified.outputs.deployment-metadata-path }})
-          environment_name=${environment_arn##*/}
-          resource_portion=${modified_resource_arn##*:}
-          IFS='/'
-          read -a split_resources <<< "$resource_portion"
-          service_name=${split_resources[1]}
-          instance_name=${split_resources[3]}
-          working_directory=$environment_name/$service_name-$instance_name/
-        elif [[ "$modified_resource_arn" == *"/pipeline"* ]]; then
-          environment_name="pipeline"
-          resource_portion=${modified_resource_arn##*:}
-          IFS='/'
-          read -a split_resources <<< "$resource_portion"
-          service_name=${split_resources[1]}
-          working_directory=pipeline/$service_name
-        fi
-        echo "::set-output name=working-directory::$working_directory"
-        echo "::set-output name=environment::$environment_name"
-        
-        role_arn=$(jq -r --arg env $environment_name '.[$env]["role"]' env_config.json)
-        echo "::set-output name=role-arn::$role_arn"
-        region=$(jq -r --arg env $environment_name '.[$env]["region"]' env_config.json)
-        echo "::set-output name=region::$region"
-        bucket=$(jq -r --arg env $environment_name '.[$env]["bucket"]' env_config.json)
-        echo "::set-output name=bucket::$bucket"
-    
-  call-terraform-workflow:
+
+      - name: Get data
+        id: get-data
+        run: |
+          modified_resource_arn=$(jq -r '.resourceMetadata.arn' ${{ steps.find-modified.outputs.deployment-metadata-path }})
+          echo "::set-output name=resource_arn::$modified_resource_arn"
+          
+          IFS=':'
+          read -a split_arn <<< "$modified_resource_arn"
+          proton_region=${split_arn[3]}
+          echo "::set-output name=proton_region::$proton_region"
+          deployment_id=$(jq -r '.deploymentId' ${{ steps.find-modified.outputs.deployment-metadata-path }})
+          echo "::set-output name=deployment_id::$deployment_id"
+          if [[ "$modified_resource_arn" == *":environment/"* ]]; then
+            environment_name=${modified_resource_arn##*/}
+            working_directory="$environment_name/"
+          elif [[ "$modified_resource_arn" == *"/service-instance/"* ]]; then
+            environment_arn=$(jq -r '.resourceMetadata.environmentArn' ${{ steps.find-modified.outputs.deployment-metadata-path }})
+            environment_name=${environment_arn##*/}
+            resource_portion=${modified_resource_arn##*:}
+            IFS='/'
+            read -a split_resources <<< "$resource_portion"
+            service_name=${split_resources[1]}
+            instance_name=${split_resources[3]}
+            working_directory=$environment_name/$service_name-$instance_name/
+          elif [[ "$modified_resource_arn" == *"/pipeline"* ]]; then
+            environment_name="pipeline"
+            resource_portion=${modified_resource_arn##*:}
+            IFS='/'
+            read -a split_resources <<< "$resource_portion"
+            service_name=${split_resources[1]}
+            working_directory=pipeline/$service_name
+          fi
+          echo "::set-output name=working_directory::$working_directory"
+          echo "::set-output name=environment::$environment_name"
+          
+          role_arn=$(jq -r '.["all_clusters"]["role"]' env_config.json)
+          echo "::set-output name=role_arn::$role_arn"
+          target_region=$(jq -r '.["all_clusters"]["region"]' env_config.json)
+          echo "::set-output name=target_region::$target_region"
+          state_bucket=$(jq -r '.["all_clusters"]["state_bucket"]' env_config.json)
+          echo "::set-output name=state_bucket::$state_bucket"
+  terraform:
+    name: 'Terraform'
     needs: get-deployment-data
-    uses: askulkarni2/eks-blueprint-proton-template/.github/workflows/terraform.yml@main
-    with:
-      role_arn: ${{ needs.get-deployment-data.outputs.role-arn }}
-      bucket: ${{ needs.get-deployment-data.outputs.bucket }}
-      environment: ${{ needs.get-deployment-data.outputs.environment }}
-      resource_arn: ${{ needs.get-deployment-data.outputs.resource-arn }}
-      working_directory: ${{ needs.get-deployment-data.outputs.working-directory }}
-      deployment_id: ${{ needs.get-deployment-data.outputs.deployment-id }}
-      aws_region: ${{ needs.get-deployment-data.outputs.region }}
+    runs-on: ubuntu-latest
+    environment: ${{ needs.get-deployment-data.outputs.environment }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    defaults:
+      run:
+        working-directory: ${{ needs.get-deployment-data.outputs.working_directory }}
+        shell: bash # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+
+    if: needs.get-deployment-data.result == 'success'
+    continue-on-error: true
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        id: assume_role
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ needs.get-deployment-data.outputs.target_region }}
+          role-to-assume: ${{ needs.get-deployment-data.outputs.role_arn }}
+          role-session-name: TF-Github-Actions
+
+      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+      - name: Setup Terraform
+        id: tf_setup
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.7
+          terraform_wrapper: false
+
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init
+        id: tf_init
+        run: terraform init -backend-config="bucket=${{ needs.get-deployment-data.outputs.state_bucket }}" -backend-config="key=${{ needs.get-deployment-data.outputs.working_directory }}terraform.tfstate" -backend-config="region=${{ needs.get-deployment-data.outputs.target_region }}"
+
+      # Checks that all Terraform configuration files adhere to a canonical format
+      - name: Terraform Format
+        id: tf_fmt
+        run: terraform fmt -diff -check
+
+      # Generates an execution plan for Terraform
+      - name: Terraform Plan
+        id: tf_plan
+        run: terraform plan
+
+      # On push to main, build or change infrastructure according to Terraform configuration files
+      # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+      - name: Terraform Apply
+        id: tf_apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve
+
+  notify-proton:
+    name: 'Notify Proton'
+    needs:
+      - get-deployment-data
+      - terraform
+    runs-on: ubuntu-latest
+    environment: ${{ needs.get-deployment-data.outputs.environment }}
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    permissions:
+      id-token: write
+      contents: read
+
+    defaults:
+      run:
+        working-directory: ${{ needs.get-deployment-data.outputs.working_directory }}
+        shell: bash # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        id: assume_role
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ needs.get-deployment-data.outputs.target_region }}
+          role-to-assume: ${{ needs.get-deployment-data.outputs.role_arn }}
+          role-session-name: TF-Github-Actions-Notify-Proton
+
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init
+        id: tf_init
+        continue-on-error: true
+        run: terraform init -backend-config="bucket=${{ needs.get-deployment-data.outputs.state_bucket }}" -backend-config="key=${{ needs.get-deployment-data.outputs.working_directory }}terraform.tfstate" -backend-config="region=${{ needs.get-deployment-data.outputs.target_region }}"
+
+      # This is a temporary measure until this feature exits Public Preview
+      - name: Install Proton Model
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          aws s3 cp s3://aws-proton-preview-public-files/model/proton-2020-07-20.normal.json  .
+      - name: Notify Proton Success
+        id: notify_success
+        if: needs.terraform.result == 'success' && steps.tf_init.outcome == 'success'
+        run: |
+          # Get outputs as json
+          outputs_json=$(terraform output -json)
+          # The outputs parameters expects a list of key=keyName,valueString=value key=key2Name,valueString=value2 etc...
+          # So here we convert the output json into a shell array
+          # NOTE: This will probably not play nicely with complex output objects (non primitives)
+          formatted_outputs=( $(echo $outputs_json | jq -r "to_entries|map(\"key=\(.key),valueString=\(.value.value|tostring)\")|.[]") )
+          
+          # Notify proton
+          aws proton notify-resource-deployment-status-change --region ${{ needs.get-deployment-data.outputs.proton_region }} --resource-arn ${{ needs.get-deployment-data.outputs.resource_arn }} --status SUCCEEDED --deployment-id ${{ needs.get-deployment-data.outputs.deployment_id }} --outputs $formatted_outputs
+          echo "Notify success!"   
+
+      - name: Notify Proton Failure
+        if: needs.terraform.result == 'failure' || needs.terraform.result == 'cancelled' || steps.tf_init.outcome != 'success'
+        run: |
+          aws proton notify-resource-deployment-status-change --region ${{ needs.get-deployment-data.outputs.proton_region }} --resource-arn ${{ needs.get-deployment-data.outputs.resource_arn }} --status FAILED --deployment-id ${{ needs.get-deployment-data.outputs.deployment_id }}
+          echo "Notify failure!"
