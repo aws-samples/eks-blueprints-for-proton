@@ -2,33 +2,27 @@
 # Consume aws-eks-accelerator-for-terraform module
 #---------------------------------------------------------------
 module "aws-eks-accelerator-for-terraform" {
-  source = "github.com/aws-samples/aws-eks-accelerator-for-terraform"
-
-  tenant      = local.tenant
-  environment = local.environment
-  zone        = local.zone
+  source = "github.com/aws-samples/aws-eks-accelerator-for-terraform?ref=v3.5.0"
 
   # EKS Cluster VPC and Subnet mandatory config
   vpc_id             = module.aws_vpc.vpc_id
   private_subnet_ids = module.aws_vpc.private_subnets
 
   # EKS CONTROL PLANE VARIABLES
-  create_eks         = true
   kubernetes_version = local.kubernetes_version
 
   # EKS MANAGED NODE GROUPS
   managed_node_groups = local.managed_node_groups
 
   # Teams
-  platform_teams    = local.platform_teams
-  application_teams = local.application_teams
+  platform_teams = local.platform_teams
 }
 
 #-------------------------------------------------------------------
 # Consume aws-eks-accelerator-for-terraform/kubernetes-addons module
 #-------------------------------------------------------------------
 module "kubernetes-addons" {
-  source = "github.com/aws-samples/aws-eks-accelerator-for-terraform//modules/kubernetes-addons"
+  source = "github.com/aws-samples/aws-eks-accelerator-for-terraform//modules/kubernetes-addons?ref=v3.5.0"
 
   eks_cluster_id = module.aws-eks-accelerator-for-terraform.eks_cluster_id
 
