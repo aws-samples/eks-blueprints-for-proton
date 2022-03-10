@@ -10,6 +10,7 @@ module "aws-eks-accelerator-for-terraform" {
 
   # EKS CONTROL PLANE VARIABLES
   kubernetes_version = local.kubernetes_version
+  cluster_name       = local.eks_cluster_id
 
   # EKS MANAGED NODE GROUPS
   managed_node_groups = local.managed_node_groups

@@ -8,6 +8,9 @@ schema:
       type: object
       description: "Input properties for eks environment."
       properties:
+        cluster_name:
+          type: string
+          description: "Cluster Name"
         vpc_cidr:
           type: string
           description: "VPC CIDR"

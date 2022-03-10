@@ -2,12 +2,12 @@ locals {
   kubernetes_version = var.environment.inputs.kubernetes_version
 
   vpc_cidr       = var.environment.inputs.vpc_cidr
-  vpc_name       = join("-", [local.tenant, local.environment, local.zone, "vpc"])
-  eks_cluster_id = join("-", [local.tenant, local.environment, local.zone, "eks"])
+  vpc_name       = var.environment.inputs.cluster_name
+  eks_cluster_id = var.environment.inputs.cluster_name
 
   managed_node_groups = {
     mng = {
-      node_group_name = "managed-ondemand"
+      node_group_name = "${var.environment.inputs.cluster_name}-managed-ondemand"
       instance_types  = ["m5.xlarge"]
       subnet_ids      = module.aws_vpc.private_subnets
       desired_size    = 1
