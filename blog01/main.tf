@@ -36,8 +36,8 @@ module "kubernetes-addons" {
   eks_cluster_id = module.aws-eks-accelerator-for-terraform.eks_cluster_id
 
   # EKS Managed Add-ons
-  #enable_amazon_eks_vpc_cni    = true
-  #amazon_eks_vpc_cni_config    = local.amazon_eks_vpc_cni_config
+  enable_amazon_eks_vpc_cni    = true
+  amazon_eks_vpc_cni_config    = local.amazon_eks_vpc_cni_config
   enable_amazon_eks_coredns    = true
   amazon_eks_coredns_config    = local.amazon_eks_coredns_config
   enable_amazon_eks_kube_proxy = true
