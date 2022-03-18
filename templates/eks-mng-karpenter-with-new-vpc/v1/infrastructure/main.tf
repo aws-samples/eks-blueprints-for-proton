@@ -40,7 +40,6 @@ module "kubernetes-addons" {
   enable_cert_manager                 = var.environment.inputs.cert_manager
   enable_vpa                          = var.environment.inputs.vpa
   enable_karpenter                    = var.environment.inputs.karpenter
-  enable_argocd                       = true
 
   depends_on = [module.aws-eks-accelerator-for-terraform.managed_node_groups]
 }
