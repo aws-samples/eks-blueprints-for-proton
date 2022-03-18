@@ -25,4 +25,41 @@ locals {
       users = ["arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:user/${var.environment.inputs.user}"]
     }
   }
+
+  #----------------------------------------------------------------
+  # ADD ONs
+  #----------------------------------------------------------------
+  amazon_eks_vpc_cni_config = {
+    addon_name               = "vpc-cni"
+    addon_version            = "v1.7.5-eksbuild.2"
+    service_account          = "aws-node"
+    resolve_conflicts        = "OVERWRITE"
+    namespace                = "kube-system"
+    additional_iam_policies  = []
+    service_account_role_arn = ""
+    tags                     = {}
+  }
+
+  amazon_eks_coredns_config = {
+    addon_name               = "coredns"
+    addon_version            = "v1.8.3-eksbuild.1"
+    service_account          = "coredns"
+    resolve_conflicts        = "OVERWRITE"
+    namespace                = "kube-system"
+    service_account_role_arn = ""
+    additional_iam_policies  = []
+    tags                     = {}
+  }
+
+  amazon_eks_kube_proxy_config = {
+    addon_name               = "kube-proxy"
+    addon_version            = "v1.20.7-eksbuild.1"
+    service_account          = "kube-proxy"
+    resolve_conflicts        = "OVERWRITE"
+    namespace                = "kube-system"
+    additional_iam_policies  = []
+    service_account_role_arn = ""
+    tags                     = {}
+  }
+
 }
