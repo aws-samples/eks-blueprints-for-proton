@@ -22,7 +22,7 @@ locals {
   #---------------------------------------------------------------
   platform_teams = {
     platform-team = {
-      users = ["arn:${data.aws_partition.current.partition}:iam:${data.aws_caller_identity.current.account_id}:user/${var.environment.inputs.user}"]
+      users = ["arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:user/${var.environment.inputs.user}"]
     }
   }
 }
