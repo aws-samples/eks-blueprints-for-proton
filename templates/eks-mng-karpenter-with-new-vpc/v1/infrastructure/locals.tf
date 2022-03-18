@@ -4,6 +4,7 @@ locals {
   vpc_cidr       = var.environment.inputs.vpc_cidr
   vpc_name       = var.environment.inputs.cluster_name
   eks_cluster_id = var.environment.inputs.cluster_name
+  azs            = slice(data.aws_availability_zones.available.names,0,3)
 
   managed_node_groups = {
     mng = {
