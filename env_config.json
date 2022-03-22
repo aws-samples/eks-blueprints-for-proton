@@ -1,7 +1,7 @@
 {
   "all_clusters": {
-    "role": "arn:aws:iam::829527579886:role/ExampleGithubRole",
-    "region": "us-east-1",
-    "state_bucket": "aws-proton-terraform-bucket-us-east-1-829527579886"
+    "role": "arn:aws:iam::693935722839:role/ExampleGithubRole",
+    "region": "us-west-2",
+    "state_bucket": "aws-proton-terraform-bucket-693935722839"
   }
 }
