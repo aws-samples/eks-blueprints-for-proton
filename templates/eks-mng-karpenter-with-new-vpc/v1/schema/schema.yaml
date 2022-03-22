@@ -14,7 +14,7 @@ schema:
         aws_region:
           type: string
           description: "AWS Region"
-          default: "us-east-1"
+          default: "us-west-2"
         vpc_cidr:
           type: string
           description: "VPC CIDR"
