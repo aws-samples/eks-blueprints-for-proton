@@ -1,5 +1,5 @@
 provider "aws" {
-  region = data.aws_region.current.id
+  region = var.environment.inputs.aws_region
   alias  = "default"
 }
 

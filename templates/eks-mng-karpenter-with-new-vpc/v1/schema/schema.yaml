@@ -11,6 +11,10 @@ schema:
         cluster_name:
           type: string
           description: "Cluster Name"
+        aws_region:
+          type: string
+          description: "AWS Region"
+          default: "us-east-1"
         vpc_cidr:
           type: string
           description: "VPC CIDR"
