@@ -4,6 +4,11 @@
 module "aws-eks-accelerator-for-terraform" {
   source = "github.com/aws-samples/aws-eks-accelerator-for-terraform?ref=v3.5.0"
 
+  # ENV Tags
+  tenant      = "${random_id.this.hex}-${local.tenant}"
+  environment = local.environment
+  zone        = local.zone
+
   # EKS Cluster VPC and Subnet mandatory config
   vpc_id             = module.aws_vpc.vpc_id
   private_subnet_ids = module.aws_vpc.private_subnets
@@ -45,3 +50,4 @@ module "kubernetes-addons" {
 
   depends_on = [module.aws-eks-accelerator-for-terraform.managed_node_groups]
 }
+

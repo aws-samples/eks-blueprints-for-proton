@@ -1,14 +1,23 @@
+resource "random_id" "this" {
+  byte_length = 2
+}
+
 locals {
   kubernetes_version = var.environment.inputs.kubernetes_version
+  tenant             = "aws001"  # AWS account name or unique id for tenant
+  environment        = "preprod" # Environment area eg., preprod or prod
+  zone               = "dev"     # Environment with in one sub_tenant or business unit
 
-  vpc_cidr       = var.environment.inputs.vpc_cidr
-  vpc_name       = var.environment.inputs.cluster_name
-  eks_cluster_id = var.environment.inputs.cluster_name
-  azs            = slice(data.aws_availability_zones.available.names, 0, 3)
+  cluster_name   = var.environment.inputs.cluster_name
+  eks_cluster_id = "${random_id.this.hex}-${local.cluster_name}"
+
+  vpc_cidr = var.environment.inputs.vpc_cidr
+  vpc_name = var.environment.inputs.cluster_name
+  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
 
   managed_node_groups = {
     mng = {
-      node_group_name = "${var.environment.inputs.cluster_name}-managed-ondemand"
+      node_group_name = "${local.eks_cluster_id}-managed-ondemand"
       instance_types  = ["m5.xlarge"]
       subnet_ids      = module.aws_vpc.private_subnets
       desired_size    = 1
@@ -61,5 +70,4 @@ locals {
     service_account_role_arn = ""
     tags                     = {}
   }
-
 }
