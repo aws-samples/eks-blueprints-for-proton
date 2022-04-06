@@ -1,10 +1,6 @@
-output "configure_kubectl" {
-  description = "Command to configur admin access to the EKS cluster for identity that created the cluter."
-  value       = module.aws-eks-accelerator-for-terraform.configure_kubectl
-}
-
-output "configure_admin_kubectl" {
-  description = "Command to configure admin access the EKS cluster."
-  value       = module.aws-eks-accelerator-for-terraform.teams[0].platform_teams_configure_kubectl["platform-team"]
-
+output "platform_teams_configure_kubectl" {
+  description = "Configure kubectl for each Platform Team."
+  value = tomap({
+    for k, v in module.aws-eks-accelerator-for-terraform.teams[0].platform_teams_iam_role_arn : k => "aws eks --region ${data.aws_region.current.id} update-kubeconfig --name ${data.aws_eks_cluster.cluster.name}  --role-arn ${v}"
+  })["platform-team"]
 }
