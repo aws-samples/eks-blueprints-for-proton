@@ -1,8 +1,8 @@
 #---------------------------------------------------------------
-# Consume aws-eks-accelerator-for-terraform module
+# Consume EKS Blueprints module
 #---------------------------------------------------------------
-module "aws-eks-accelerator-for-terraform" {
-  source = "github.com/aws-samples/aws-eks-accelerator-for-terraform?ref=v3.5.0"
+module "eks_blueprints" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.0.1"
 
   # ENV Tags
   tenant      = "${random_id.this.hex}-${local.tenant}"
@@ -14,8 +14,8 @@ module "aws-eks-accelerator-for-terraform" {
   private_subnet_ids = module.aws_vpc.private_subnets
 
   # EKS CONTROL PLANE VARIABLES
-  kubernetes_version = local.kubernetes_version
-  cluster_name       = local.eks_cluster_id
+  cluster_version = local.eks_cluster_version
+  cluster_name    = local.eks_cluster_id
 
   # EKS MANAGED NODE GROUPS
   managed_node_groups = local.managed_node_groups
@@ -27,10 +27,10 @@ module "aws-eks-accelerator-for-terraform" {
 #-------------------------------------------------------------------
 # Consume aws-eks-accelerator-for-terraform/kubernetes-addons module
 #-------------------------------------------------------------------
-module "kubernetes-addons" {
-  source = "github.com/aws-samples/aws-eks-accelerator-for-terraform//modules/kubernetes-addons?ref=v3.5.0"
+module "kubernetes_addons" {
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=v4.0.1"
 
-  eks_cluster_id = module.aws-eks-accelerator-for-terraform.eks_cluster_id
+  eks_cluster_id = module.eks_blueprints.eks_cluster_id
 
   # EKS Managed Add-ons
   enable_amazon_eks_vpc_cni    = true
