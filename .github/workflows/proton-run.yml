@@ -317,6 +317,6 @@ jobs:
       id: tf_destroy_cluster
       run: terraform apply -auto-approve -destroy -target="module.aws-eks-accelerator-for-terraform" -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
 
-    - name: Terraform Destroy
+    - name: Terraform Destroy (Everything)
       id: tf_destroy_everything
       run: terraform apply -auto-approve -destroy -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
