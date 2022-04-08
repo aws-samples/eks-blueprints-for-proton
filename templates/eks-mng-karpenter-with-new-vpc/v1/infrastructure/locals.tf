@@ -3,13 +3,13 @@ resource "random_id" "this" {
 }
 
 locals {
-  kubernetes_version = var.environment.inputs.kubernetes_version
-  tenant             = "aws001"  # AWS account name or unique id for tenant
-  environment        = "preprod" # Environment area eg., preprod or prod
-  zone               = "dev"     # Environment with in one sub_tenant or business unit
+  tenant      = "aws001"  # AWS account name or unique id for tenant
+  environment = "preprod" # Environment area eg., preprod or prod
+  zone        = "dev"     # Environment with in one sub_tenant or business unit
 
-  cluster_name   = var.environment.inputs.cluster_name
-  eks_cluster_id = "${random_id.this.hex}-${local.cluster_name}"
+  eks_cluster_version = var.environment.inputs.kubernetes_version
+  cluster_name        = var.environment.inputs.cluster_name
+  eks_cluster_id      = "${random_id.this.hex}-${local.cluster_name}"
 
   vpc_cidr = var.environment.inputs.vpc_cidr
   vpc_name = var.environment.inputs.cluster_name

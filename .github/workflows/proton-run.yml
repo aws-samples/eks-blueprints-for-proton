@@ -309,6 +309,14 @@ jobs:
       continue-on-error: true
       run: terraform init -backend-config="bucket=${{ needs.get-deployment-data.outputs.state_bucket }}" -backend-config="key=${{ needs.get-deployment-data.outputs.working_directory }}terraform.tfstate" -backend-config="region=${{ needs.get-deployment-data.outputs.target_region }}"
     
+    - name: Terraform Destroy (Add-ons)
+      id: tf_destroy
+      run: terraform apply -auto-approve -destroy -target="module.kubernetes_addons" -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
+
+    - name: Terraform Destroy (Cluster)
+      id: tf_destroy
+      run: terraform apply -auto-approve -destroy -target="module.eks_blueprints" -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
+
     - name: Terraform Destroy
       id: tf_destroy
       run: terraform apply -auto-approve -destroy -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
