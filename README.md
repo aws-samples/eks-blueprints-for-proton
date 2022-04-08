@@ -6,7 +6,7 @@ Welcome! This repository should help you test how AWS Proton works with Terrafor
 
 1. A CloudFormation [template](scripts/cloudformation/GitHubConfiguration.yamlGitHubConfiguration.yaml) that will help you get the underlying roles and permissions set up and an S3 bucket created to hold your Terraform state.
 1. A GitHub Actions task to run Terraform Open Source based on commits to this repo
-1. An Amazon EKS [example](templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure) based on [Amazon EKS Acclerator](https://github.com/aws-samples/aws-eks-accelerator-for-terraform)  
+1. An Amazon EKS [example](templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure) based on [Amazon EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints)
 
 ## How to
 

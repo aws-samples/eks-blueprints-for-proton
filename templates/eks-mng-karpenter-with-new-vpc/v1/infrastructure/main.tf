@@ -25,7 +25,7 @@ module "eks_blueprints" {
 }
 
 #-------------------------------------------------------------------
-# Consume aws-eks-accelerator-for-terraform/kubernetes-addons module
+# Consume eks-blueprints/kubernetes-addons module
 #-------------------------------------------------------------------
 module "kubernetes_addons" {
   source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=v4.0.1"
@@ -48,6 +48,6 @@ module "kubernetes_addons" {
   enable_vpa                          = var.environment.inputs.vpa
   enable_karpenter                    = var.environment.inputs.karpenter
 
-  depends_on = [module.aws-eks-accelerator-for-terraform.managed_node_groups]
+  depends_on = [module.eks_blueprints.managed_node_groups]
 }
 
