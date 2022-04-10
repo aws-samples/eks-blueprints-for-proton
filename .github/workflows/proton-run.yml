@@ -311,11 +311,11 @@ jobs:
     
     - name: Terraform Destroy (Add-ons)
       id: tf_destroy_addons
-      run: terraform apply -auto-approve -destroy -target="module.kubernetes-addons" -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
+      run: terraform apply -auto-approve -destroy -target="module.kubernetes_addons" -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
 
     - name: Terraform Destroy (Cluster)
       id: tf_destroy_cluster
-      run: terraform apply -auto-approve -destroy -target="module.aws-eks-accelerator-for-terraform" -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
+      run: terraform apply -auto-approve -destroy -target="module.eks_blueprints" -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
 
     - name: Terraform Destroy (Everything)
       id: tf_destroy_everything
