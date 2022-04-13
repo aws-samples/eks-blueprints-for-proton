@@ -1,6 +1,4 @@
 
-## WORK IN PROGRESS (do not review for now)
-
 #### What is the goal of this tutorial?
 
 This repository includes a template example to configure AWS Proton as a vending machine for EKS cluster using Terraform. For more information about this use case please read this [blog post](). This tutorial is not intended to be used as-is for production. It provides an example of how to use Proton for this specific scenario. 
@@ -13,7 +11,7 @@ To get started with this tutorial you need to have an AWS account with administr
 
 Login to the AWS console and select the AWS region where you want to exercise this tutorial.  
 
-Create a repository (in your GitHub account) off of this template: https://github.com/aws-samples/eks-blueprints-for-proton and keep the same name (you can also fork the repository if you prefer).    
+Create a repository (in your GitHub account) off of this template: https://github.com/aws-samples/eks-blueprints-for-proton and keep the same name (you can also fork the repository if you prefer). Remember to enable GitHub Actions on your repository because it will be required later.  
 
 Set up an AWS CodeStar connection following [these instructions](https://docs.aws.amazon.com/proton/latest/adminguide/setting-up-for-service.html#setting-up-vcontrol). This will allow you to access your GitHub account (and your repos) from Proton.
 
@@ -50,25 +48,27 @@ Within a few seconds you should see a template version `1.0` appear. It's in `Dr
 
 You should see something like this:
 
+![environment_template](environt_template.png)
+
 #### Deploy the cluster via Proton
 
 Now that a platform administrator has configured the template that represents the organization standard for an EKS cluster, logout from the console and login with the `protondev` user. 
 
-Navigate to the `Environments` page in Proton and click `Create environment`. Select the environment template you created above and click `Configure`. In the `Provisioning` section select `Self-managed provisioning`. In the `Provisioning repository details` select `GitHub`, in `CodeStar connection` select your GitHub account, in the `Repository name` select the GitHub repo you create above and `main` as the `Branch name`. Provide an `Environment name` and an `Environment description` of your choice and click `Next`.
+Navigate to the `Environments` page in Proton and click `Create environment`. Select the environment template you created above and click `Configure`. In the `Provisioning` section select `Self-managed provisioning`. In the `Provisioning repository details` select `GitHub`, in `CodeStar connection` select your GitHub account, in the `Repository name` select the GitHub repo you create (or forked) above and `main` as the `Branch name`. Provide an `Environment name` and an `Environment description` of your choice and click `Next`.
 
 You should now see something like this:
 
-PICTURE 
+![configure_cluster_deployment](configure_cluster_deployment.png)
 
-This is where the magic starts to happen. The input parameters you see here (which are obviously related to the EKS cluster you are about to provision) are part of the sample template provided in the repo but that you can fully customize based on your needs. Specifically the [main.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/main.tf) file is where the [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) module is imported and where the core configuration is defined. The [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file is where all the inputs get defined. Note that in the template sample we created in the repo the only Kubernetes version you can pick is 1.21 because we pretend that this is the only version that the platform team at your org has vetted and is supporting internally. 
+Give your cluster a name, leave the vpc_cidr as is and add your AWS IAM user (`protondev`) to the input `user`. The EKS Blueprints will enable the user you enter to assume an IAM role that has been defined a Kubernetes cluster admin in the K8s RBAC. At your discretion, and based on your potential needs, enable or disable the add-ons available.
 
-Give your cluster a name, leave the vpc_cidr as is and add your AWS IAM user (`protondev`) to the input `user`. The EKS Blueprints will enable the user you enter to assume an IAM role that has been defined a Kubernetes cluster admin in the K8s RBAC. At your discretion, and based on your potential needs, enable or disable the add-ons available.    
+This is where the magic starts to happen. The input parameters you see here (which are obviously related to the EKS cluster you are about to provision) are part of the sample template provided in the repo but that you can fully customize based on your needs. Specifically the [main.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/main.tf) file is where the [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) module is imported and where the core configuration is defined. The [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file is where all the inputs get defined. Note that in the template sample we created in the repo the only Kubernetes version you can pick is 1.21 because we pretend that this is the only version that the platform team at your org has vetted and is supporting internally.
 
 Click `Next` and in the next summary form click `Create`. This will trigger your cluster creation. 
 
-This will cause the following events to trigger:
+This will trigger the following process:
 - Proton will merge the Terraform template with your inputs and create a PR in the repository you specified (in our tutorial it's the same repository that hosts the template, but you probably want these to be two separate repositories in a production setup - just remember to add them both to the Proton `Repositories` page you configured at the beginning)
-- The GitHub action will trigger to run a plan and check everything is in good shape 
+- The [GitHub action example that ships with this repository](.github/workflows/proton-run.yml) will trigger to run a plan and check everything is in good shape 
 - The PR will be merged (this can be a manual step performed by a platform administrator or because Proton creates enough guardrails for the PR to be legit, the repository can be configured to perform an auto-merge)
 - Once the PR is merged the GH action provided as an example in the repository will kick off again and this time it will go till the `terraform apply` stage effectively deploying the cluster 
 - When the `apply` has completed the action will notify Proton with the `output` which consists of the `eks aws` command to configure the `config` file to point `kubectl` to the cluster you just deployed. 
@@ -77,20 +77,47 @@ This will cause the following events to trigger:
 
 In other words, you should see something like this in your Proton console for the environment you have just deployed: 
 
-PICTURE 
+![cluster_summary](cluster_summary.png) 
 
-If you are still logged in as `protondev` and you open a Cloud Shell, you can run the command as reported in the Proton output and configure your shell to communicate with this cluster. If you have `kubectl` installed in your shell you can start interacting with the cluster: 
+If you are still logged in as `protondev` and you open a Cloud Shell, you can run the command as reported in the Proton `Outputs` section. This will configure `kubectl` in your shell to communicate with this cluster. If you have `kubectl` installed in your shell you can start interacting with the cluster: 
 
 ```aidl
+[cloudshell-user@ip-10-0-70-52 ~]$ 
+[cloudshell-user@ip-10-0-70-52 ~]$ aws eks --region us-west-2 update-kubeconfig --name 6946-myekscluster --role-arn arn:aws:iam::336419811389:role/6946-aws001-preprod-dev-platform-team-Access
+Added new context arn:aws:eks:us-west-2:336419811389:cluster/6946-myekscluster to /home/cloudshell-user/.kube/config
 
+[cloudshell-user@ip-10-0-70-52 ~]$ ./kubectl get pods -A
+NAMESPACE        NAME                                            READY   STATUS    RESTARTS   AGE
+cert-manager     cert-manager-646968b67-tj6zd                    1/1     Running   0          103m
+cert-manager     cert-manager-cainjector-7d55bf8f78-k6p2w        1/1     Running   0          103m
+cert-manager     cert-manager-webhook-577f77586f-gm8n8           1/1     Running   0          103m
+karpenter        karpenter-85c577b548-rvf8b                      2/2     Running   0          104m
+kube-system      aws-load-balancer-controller-568fc98559-bzdr4   1/1     Running   0          104m
+kube-system      aws-load-balancer-controller-568fc98559-t5lkm   1/1     Running   0          104m
+kube-system      aws-node-mq68h                                  1/1     Running   0          103m
+kube-system      coredns-6968c9cbb-fvt7n                         1/1     Running   0          104m
+kube-system      coredns-6968c9cbb-ps2j6                         1/1     Running   0          104m
+kube-system      kube-proxy-rskv4                                1/1     Running   0          104m
+logging          aws-for-fluent-bit-b4dpz                        1/1     Running   0          103m
+metrics-server   metrics-server-694d47d564-wb5jv                 1/1     Running   0          104m
+vpa              vpa-recommender-554f56647b-pq2g5                1/1     Running   0          104m
+vpa              vpa-updater-67d6c5c7cf-b2hsd                    1/1     Running   0          104m
 
+[cloudshell-user@ip-10-0-70-52 ~]$ ./kubectl get nodes
+NAME                                        STATUS   ROLES    AGE    VERSION
+ip-10-0-11-250.us-west-2.compute.internal   Ready    <none>   105m   v1.21.5-eks-9017834
 
+[cloudshell-user@ip-10-0-70-52 ~]$ ./kubectl cluster-info
+Kubernetes control plane is running at https://FEEEFE9EC8CE64A2F90269827F8CB045.gr7.us-west-2.eks.amazonaws.com
+CoreDNS is running at https://FEEEFE9EC8CE64A2F90269827F8CB045.gr7.us-west-2.eks.amazonaws.com/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
-
-
-
-
+[cloudshell-user@ip-10-0-70-52 ~]$ ./kubectl version
+Client Version: version.Info{Major:"1", Minor:"23", GitVersion:"v1.23.5", GitCommit:"c285e781331a3785a7f436042c65c5641ce8a9e9", GitTreeState:"clean", BuildDate:"2022-03-16T15:58:47Z", GoVersion:"go1.17.8", Compiler:"gc", Platform:"linux/amd64"}
+Server Version: version.Info{Major:"1", Minor:"21+", GitVersion:"v1.21.9-eks-0d102a7", GitCommit:"eb09fc479c1b2bfcc35c47416efb36f1b9052d58", GitTreeState:"clean", BuildDate:"2022-02-17T16:36:28Z", GoVersion:"go1.16.12", Compiler:"gc", Platform:"linux/amd64"}
+WARNING: version difference between client (1.23) and server (1.21) exceeds the supported minor version skew of +/-1
+[cloudshell-user@ip-10-0-70-52 ~]$ 
 ```
 
 Congratulations. You have just witnessed Proton vending an EKS cluster.
@@ -110,13 +137,27 @@ When you push this commit to your repository in GitHub, Proton will detect the c
 
 This means that every cluster a developer will deploy with this template can be deployed with either versions (because `1.21` and `1.22` are both valid options). However, it is also possible to upgrade an existing 1.21 cluster to the new 1.22 version. 
 
+Your environment template should now look like this: 
+
+![updated_environment_template](updated_environment_template.png)
+
+> Note the new `Template version` (`1.1`) and also note that there is an environment deployed that references this template at version `1.0`.
+
 #### Updating an existing cluster
 
-Now that a Proton administrator have updated the template, login back as the `protondev` user and open your Proton environment that represents the cluster you deployed above. You will notice that there is a message that says that there is a new template available. You can now `Update` your environment to apply the new template: 
+Now that a Proton administrator have updated the template, login back as the `protondev` user and open your Proton environment that represents the cluster you deployed above. You will notice that there is a message that says that there is a new template available. You can now `Update` your environment to apply the new template. To do so, go to the Proton environment and click `Update`: 
 
-PICTURE 
+![update_environment](update_environment.png)
 
+At the next screen click `Edit` to get access and update your cluster parameters. Here you can set the cluster version to 1.22:
 
+![edit_cluster_params](edit_cluster_params.png)
+
+Click `Next` and then `Updated`. 
+
+This will trigger a workflow identical to the one we triggered with the deployment. Terraform, in this case, will `apply` the configuration to an existing cluster and the logic inside the EKS Blueprints module will know how to upgrade an EKS cluster. At the end of this process the GitHub action will notify Proton that the upgrade has completed. 
+
+> Note: in this example we are updating both the template and an input parameter in that template. In general these can be orthogonal processes. That is, you can update the template functionalities without necessarily exposing the user new or different parameters, or you can update input parameters without having to update a template. Also remeber that this EKS Blueprint template is only provided as part of a demonstration tutorial. If you are deep into Terraform and EKS/Kubernetes you can build a template that better fits your own needs. Refer to the [EKS Blueprints repo](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) for all the options available. 
 
 
 
