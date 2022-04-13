@@ -175,6 +175,7 @@ jobs:
         aws-region: ${{ needs.get-deployment-data.outputs.target_region }}
         role-to-assume: ${{ needs.get-deployment-data.outputs.role_arn }}
         role-session-name: TF-Github-Actions
+        mask-aws-account-id: 'no'
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
@@ -242,7 +243,8 @@ jobs:
         aws-region: ${{ needs.get-deployment-data.outputs.target_region }}
         role-to-assume: ${{ needs.get-deployment-data.outputs.role_arn }}
         role-session-name: TF-Github-Actions-Notify-Proton
-        
+        mask-aws-account-id: 'no'
+
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       id: tf_init
@@ -302,7 +304,8 @@ jobs:
         aws-region: ${{ needs.get-deployment-data.outputs.target_region }}
         role-to-assume: ${{ needs.get-deployment-data.outputs.role_arn }}
         role-session-name: TF-Github-Actions-Notify-Proton
-        
+        mask-aws-account-id: 'no'
+
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       id: tf_init
