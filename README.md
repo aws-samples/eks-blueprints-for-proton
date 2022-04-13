@@ -17,13 +17,15 @@ Create a repository (in your GitHub account) off of this template: https://githu
 
 Set up an AWS CodeStar connection following [these instructions](https://docs.aws.amazon.com/proton/latest/adminguide/setting-up-for-service.html#setting-up-vcontrol). This will allow you to access your GitHub account (and your repos) from Proton.
 
-Go to the Proton console and switch to the `Settings/Repositories` page. Add the repository you created/forked above.
+Go to the Proton console and switch to the `Settings/Repositories` page. Add the repository you created/forked above. It should look something like this: 
+
+![proton_registry](proton_registry.png)
 
 For Terraform to be able to deploy/vend clusters, it needs to assume a proper IAM role. In addition, since for our solution we will use Terraform open source, we also need an S3 bucket to save the Terraform state. To do this please follow the instructions [at this page](./scripts/cloudformation/README.md).   
 
 > The above is a one-off CFN stack we use to create an IAM role and S3 bucket. If you are vested in Terraform and want to use Terraform to create these two objects it's perfectly fine. 
 
-Retrieve the role ARN and the S3 bucket name from the stack above and update the [env-config.json](./env_config.json)` file in your GitHub repository.  
+Retrieve the role ARN and the S3 bucket name from the stack above and update the [env-config.json](./env_config.json) file in your GitHub repository. Make sure to update the `region` parameter to the region you are using. 
 
 Create two IAM users that you will be using to mimic the `platform administrator` and the `developer`: 
 - `protonadmin` (with the AWS managed `AWSProtonFullAccess` policy)
@@ -31,7 +33,7 @@ Create two IAM users that you will be using to mimic the `platform administrator
 
 Because in Proton a developer, with the standard `AWSProtonDeveloperAccess`, is not allowed to deploy an environment, you need to add this inline policy to the `protondev` user: 
 ```aidl
-ddddddddd
+inline policy
 ```
 
 #### Create the environment template in Proton
@@ -65,7 +67,7 @@ Give your cluster a name, leave the vpc_cidr as is and add your AWS IAM user (`p
 Click `Next` and in the next summary form click `Create`. This will trigger your cluster creation. 
 
 This will cause the following events to trigger:
-- Proton will merge the Terraform template with your inputs and create a PR in the repository you specified (in our tutorial it's the same repository that hosts the template but you probably want these to be two separate repositories in a production setup - just remember to add them both to the Proton `Repositories` page you configured at the beginning)
+- Proton will merge the Terraform template with your inputs and create a PR in the repository you specified (in our tutorial it's the same repository that hosts the template, but you probably want these to be two separate repositories in a production setup - just remember to add them both to the Proton `Repositories` page you configured at the beginning)
 - The GitHub action will trigger to run a plan and check everything is in good shape 
 - The PR will be merged (this can be a manual step performed by a platform administrator or because Proton creates enough guardrails for the PR to be legit, the repository can be configured to perform an auto-merge)
 - Once the PR is merged the GH action provided as an example in the repository will kick off again and this time it will go till the `terraform apply` stage effectively deploying the cluster 
@@ -91,16 +93,28 @@ If you are still logged in as `protondev` and you open a Cloud Shell, you can ru
 
 ```
 
-Congratulations. You have just witnessed Proton vending an EKS cluster. 
+Congratulations. You have just witnessed Proton vending an EKS cluster.
 
+#### Updating the Proton cluster template
 
+As a platform administrator you may get to the point where you bless another Kubernetes version. In this case let's simulate that you have verified K8s version `1.22` adheres to your organization standards, and you want to make it available to you developers. The only thing you need to do is to update the [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file in your own repository (the repository you are using with Proton) to include the new version. Specifically you need to configure the `kubernetes_version` variable to accept both `1.21` and `1.22` and change the default to `1.22` as follows: 
+```aidl
+        kubernetes_version:
+          type: string
+          description: Kubernetes Version
+          enum: ["1.21", 1.22]
+          default: "1.22"
+```
 
+When you push this commit to your repository in GitHub, Proton will detect the change in the template. If you login with your `protonadmin` user you will see in the details of your `Environment template` that there is a new version in the `Draft` stage. You can click `Publish`, and it will become the new default minor version for that template. 
 
+This means that every cluster a developer will deploy with this template can be deployed with either versions (because `1.21` and `1.22` are both valid options). However, it is also possible to upgrade an existing 1.21 cluster to the new 1.22 version. 
 
+#### Updating an existing cluster
 
+Now that a Proton administrator have updated the template, login back as the `protondev` user and open your Proton environment that represents the cluster you deployed above. You will notice that there is a message that says that there is a new template available. You can now `Update` your environment to apply the new template: 
 
-
-
+PICTURE 
 
 
 
