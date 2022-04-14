@@ -50,6 +50,6 @@ schema:
           default: true
       required:
         - cluster_name
-          vpc_cidr
-          user
-          kubernetes_version
+        - vpc_cidr
+        - user
+        - kubernetes_version
