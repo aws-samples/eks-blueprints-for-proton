@@ -49,7 +49,7 @@ schema:
           description: "Enable Karpenter Add-On"
           default: true
       required:
-      - cluster_name
-        vpc_cidr
-        user
-        kubernetes_version
+        - cluster_name
+          vpc_cidr
+          user
+          kubernetes_version
