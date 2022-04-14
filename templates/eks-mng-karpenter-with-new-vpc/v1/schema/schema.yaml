@@ -50,5 +50,5 @@ schema:
           default: true
       required:
         - cluster_name
-        - vpc_cidr
-        - user
+          vpc_cidr
+          user
