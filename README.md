@@ -1,3 +1,5 @@
+## Note for folks testing this as of 4/14 and through likely ALL April: Proton IAM policies are currently being fixed so ignore ALL steps to create dev and admin users (only test the workflow below with an admin user at the AWS account level)  
+
 
 #### What is the goal of this tutorial?
 
@@ -5,7 +7,7 @@ This repository includes a template example to configure AWS Proton as a vending
 
 #### Getting started and one-off configurations 
 
-To get started with this tutorial you need to have an AWS account with administrative privileges and a GitHub account. 
+To get started with this tutorial you need to have an AWS account with administrative privileges and a GitHub account.
 
 > Note: Terraform provisioning happens outside the context of Proton and for that we are providing a sample GitHub action as part of the same repository. However, you could use any pipeline you want to accomplish the same result with a similar flow.
 
@@ -31,7 +33,7 @@ Create two IAM users that you will be using to mimic the `platform administrator
 
 Because in Proton a developer, with the standard `AWSProtonDeveloperAccess`, is not allowed to deploy an environment, you need to add this inline policy to the `protondev` user: 
 ```
-***** This delta is being currently worked on. As a workaround for now, if you are testing this workflow, is to assign the AWSProtonFullAccess policy to the dev user ***** 
+***** This delta is being currently worked on ***** 
 ```
 
 #### Create the environment template in Proton
@@ -145,7 +147,7 @@ Your environment template should now look like this:
 
 #### Updating an existing cluster
 
-Now that a Proton administrator have updated the template, login back as the `protondev` user and open your Proton environment that represents the cluster you deployed above. You will notice that there is a message that says that there is a new template available. You can now `Update` your environment to apply the new template. To do so, go to the Proton environment and click `Update`: 
+Now that a Proton administrator have updated the template, login back as the `protondev` user and open your Proton environment that represents the cluster you deployed above. You will notice that there is a message that says that there is a new template available. You can now update your environment to apply the new template and change the inputs. To do so, go to the Proton environment and click `Update minor`: 
 
 ![update_environment](images/update_environment.png)
 
@@ -153,11 +155,11 @@ At the next screen click `Edit` to get access and update your cluster parameters
 
 ![edit_cluster_params](images/edit_cluster_params.png)
 
-Click `Next` and then `Updated`. 
+Click `Next` and then `Update`. 
 
 This will trigger a workflow identical to the one we triggered with the deployment. Terraform, in this case, will `apply` the configuration to an existing cluster and the logic inside the EKS Blueprints module will know how to upgrade an EKS cluster. At the end of this process the GitHub action will notify Proton that the upgrade has completed. 
 
-> Note: in this example we are updating both the template and an input parameter in that template. In general these can be orthogonal processes. That is, you can update the template functionalities without necessarily exposing the user new or different parameters, or you can update input parameters without having to update a template. Also remeber that this EKS Blueprint template is only provided as part of a demonstration tutorial. If you are deep into Terraform and EKS/Kubernetes you can build a template that better fits your own needs. Refer to the [EKS Blueprints repo](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) for all the options available. 
+> Note: in this example we are updating both the template and an input parameter in that template. In general these can be orthogonal processes. That is, you can update the template functionalities without necessarily exposing the user new or different parameters, or you can update input parameters without having to update a template. Refer to [this Proton documentation page](https://docs.aws.amazon.com/proton/latest/adminguide/ag-env-update.html) for more details about environments updates. Also remember that this EKS Blueprint template is only provided as part of a demonstration tutorial. If you are deep into Terraform and EKS/Kubernetes you can build a template that better fits your own needs. Refer to the [EKS Blueprints repo](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) for all the options available. 
 
 
 
