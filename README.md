@@ -30,8 +30,8 @@ Create two IAM users that you will be using to mimic the `platform administrator
 - `protondev` (with the AWS managed `AWSProtonDeveloperAccess` policy)
 
 Because in Proton a developer, with the standard `AWSProtonDeveloperAccess`, is not allowed to deploy an environment, you need to add this inline policy to the `protondev` user: 
-```aidl
-inline policy
+```
+***** This delta is being currently worked on. As a workaround for now, if you are testing this workflow, is to assign the AWSProtonFullAccess policy to the dev user ***** 
 ```
 
 #### Create the environment template in Proton
@@ -81,7 +81,7 @@ In other words, you should see something like this in your Proton console for th
 
 If you are still logged in as `protondev` and you open a Cloud Shell, you can run the command as reported in the Proton `Outputs` section. This will configure `kubectl` in your shell to communicate with this cluster. If you have `kubectl` installed in your shell you can start interacting with the cluster: 
 
-```aidl
+```
 [cloudshell-user@ip-10-0-70-52 ~]$ 
 [cloudshell-user@ip-10-0-70-52 ~]$ aws eks --region us-west-2 update-kubeconfig --name 6946-myekscluster --role-arn arn:aws:iam::336419811389:role/6946-aws001-preprod-dev-platform-team-Access
 Added new context arn:aws:eks:us-west-2:336419811389:cluster/6946-myekscluster to /home/cloudshell-user/.kube/config
@@ -125,7 +125,7 @@ Congratulations. You have just witnessed Proton vending an EKS cluster.
 #### Updating the Proton cluster template
 
 As a platform administrator you may get to the point where you bless another Kubernetes version. In this case let's simulate that you have verified K8s version `1.22` adheres to your organization standards, and you want to make it available to you developers. The only thing you need to do is to update the [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file in your own repository (the repository you are using with Proton) to include the new version. Specifically you need to configure the `kubernetes_version` variable to accept both `1.21` and `1.22` and change the default to `1.22` as follows: 
-```aidl
+```
         kubernetes_version:
           type: string
           description: Kubernetes Version
@@ -160,29 +160,6 @@ This will trigger a workflow identical to the one we triggered with the deployme
 > Note: in this example we are updating both the template and an input parameter in that template. In general these can be orthogonal processes. That is, you can update the template functionalities without necessarily exposing the user new or different parameters, or you can update input parameters without having to update a template. Also remeber that this EKS Blueprint template is only provided as part of a demonstration tutorial. If you are deep into Terraform and EKS/Kubernetes you can build a template that better fits your own needs. Refer to the [EKS Blueprints repo](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) for all the options available. 
 
 
-
-
-
-A good way to make the deployment fail and WATCH the NOTIFY PROTON job not kicking in: use `/Admin/mreferre-Isengard` as the user-name to add as an admin in the environment deployment workflow. This will cause the apply to fail with:
-failed creating IAM Role (efe5-aws001-preprod-dev-platform-team-Access): MalformedPolicyDocument: Invalid principal in policy: "AWS":"arn:aws:iam::***:user/Admin/mreferre-Isengard"
-
-
-
-
-
-
-
-
-User is required. Do we make it optional (for real) or do we make it mandatory? Optional would be better IMO.
-
-
-
-
-
-
-
-
-The fact that the cluster disappears immediately from Proton is an issue
 
 
  
