@@ -17,7 +17,7 @@ Set up an AWS CodeStar connection following [these instructions](https://docs.aw
 
 Go to the Proton console and switch to the `Settings/Repositories` page. Add the repository you created/forked above. It should look something like this: 
 
-![proton_registry](proton_registry.png)
+![proton_registry](images/proton_registry.png)
 
 For Terraform to be able to deploy/vend clusters, it needs to assume a proper IAM role. In addition, since for our solution we will use Terraform open source, we also need an S3 bucket to save the Terraform state. To do this please follow the instructions [at this page](./scripts/cloudformation/README.md).   
 
@@ -48,7 +48,7 @@ Within a few seconds you should see a template version `1.0` appear. It's in `Dr
 
 You should see something like this:
 
-![environment_template](environt_template.png)
+![environment_template](images/environt_template.png)
 
 #### Deploy the cluster via Proton
 
@@ -58,7 +58,7 @@ Navigate to the `Environments` page in Proton and click `Create environment`. Se
 
 You should now see something like this:
 
-![configure_cluster_deployment](configure_cluster_deployment.png)
+![configure_cluster_deployment](images/configure_cluster_deployment.png)
 
 Give your cluster a name, leave the vpc_cidr as is and add your AWS IAM user (`protondev`) to the input `user`. The EKS Blueprints will enable the user you enter to assume an IAM role that has been defined a Kubernetes cluster admin in the K8s RBAC. At your discretion, and based on your potential needs, enable or disable the add-ons available.
 
@@ -77,7 +77,7 @@ This will trigger the following process:
 
 In other words, you should see something like this in your Proton console for the environment you have just deployed: 
 
-![cluster_summary](cluster_summary.png) 
+![cluster_summary](images/cluster_summary.png) 
 
 If you are still logged in as `protondev` and you open a Cloud Shell, you can run the command as reported in the Proton `Outputs` section. This will configure `kubectl` in your shell to communicate with this cluster. If you have `kubectl` installed in your shell you can start interacting with the cluster: 
 
@@ -139,7 +139,7 @@ This means that every cluster a developer will deploy with this template can be 
 
 Your environment template should now look like this: 
 
-![updated_environment_template](updated_environment_template.png)
+![updated_environment_template](images/updated_environment_template.png)
 
 > Note the new `Template version` (`1.1`) and also note that there is an environment deployed that references this template at version `1.0`.
 
@@ -147,11 +147,11 @@ Your environment template should now look like this:
 
 Now that a Proton administrator have updated the template, login back as the `protondev` user and open your Proton environment that represents the cluster you deployed above. You will notice that there is a message that says that there is a new template available. You can now `Update` your environment to apply the new template. To do so, go to the Proton environment and click `Update`: 
 
-![update_environment](update_environment.png)
+![update_environment](images/update_environment.png)
 
 At the next screen click `Edit` to get access and update your cluster parameters. Here you can set the cluster version to 1.22:
 
-![edit_cluster_params](edit_cluster_params.png)
+![edit_cluster_params](images/edit_cluster_params.png)
 
 Click `Next` and then `Updated`. 
 

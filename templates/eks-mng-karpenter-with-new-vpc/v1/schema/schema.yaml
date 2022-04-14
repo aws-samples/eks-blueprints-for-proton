@@ -48,3 +48,7 @@ schema:
           type: boolean
           description: "Enable Karpenter Add-On"
           default: true
+      required:
+        - cluster_name
+        - vpc_cidr
+        - user
