@@ -33,7 +33,29 @@ Create two IAM users that you will be using to mimic the `platform administrator
 
 Because in Proton a developer, with the standard `AWSProtonDeveloperAccess`, is not allowed to deploy an environment, you need to add this inline policy to the `protondev` user: 
 ```
-***** This delta is being currently worked on ***** 
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:PassedToService": "proton.amazonaws.com"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "proton:CreateEnvironment",
+                "iam:ListRoles"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
 ```
 
 #### Create the environment template in Proton

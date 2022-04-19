@@ -118,7 +118,7 @@ jobs:
 
           service_name=${split_resources[1]}
 
-          working_directory=pipeline/$service_name
+          working_directory=$service_name/pipeline
         fi
 
         if [[ $(jq -r --arg env $environment_name 'has($env)' env_config.json) = "true" ]]; then
@@ -258,11 +258,8 @@ jobs:
         # Get outputs as json
         outputs_json=$(terraform output -json)
 
-        # The outputs parameters expects a list of key=keyName,valueString=value key=key2Name,valueString=value2 etc...
-        # So here we convert the output json into a shell array
-        # NOTE: This will probably not play nicely with complex output objects (non primitives)
-
-        formatted_outputs=( $(echo $outputs_json | jq -r "to_entries|map(\"key=\(.key),valueString=\(.value.value|tostring)\")|.[]") )
+        # Map Terraform output JSON to Proton outputs JSON
+        formatted_outputs=( $(echo $outputs_json | jq "to_entries|map({key: .key, valueString: .value.value})") )
       
         # Notify proton
         aws proton notify-resource-deployment-status-change --region ${{ needs.get-deployment-data.outputs.proton_region }} --resource-arn ${{ needs.get-deployment-data.outputs.resource_arn }} --status SUCCEEDED --deployment-id ${{ needs.get-deployment-data.outputs.deployment_id }} --outputs "${formatted_outputs[*]}"
