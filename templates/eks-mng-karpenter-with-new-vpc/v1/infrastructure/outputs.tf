@@ -8,3 +8,7 @@ output "platform_teams_configure_kubectl" {
 output "eks_cluster_id" {
   value = module.eks_blueprints.eks_cluster_id
 }
+
+output "eks_cluster_name" {
+  value = module.eks_blueprints.eks_cluster_name
+}
