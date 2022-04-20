@@ -118,7 +118,7 @@ jobs:
 
           service_name=${split_resources[1]}
 
-          working_directory=pipeline/$service_name
+          working_directory=$service_name/pipeline
         fi
 
         if [[ $(jq -r --arg env $environment_name 'has($env)' env_config.json) = "true" ]]; then
@@ -159,6 +159,8 @@ jobs:
         shell: bash # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
 
     if: needs.get-deployment-data.result == 'success' && needs.get-deployment-data.outputs.is_deleted == 'false'
+
+    continue-on-error: true
 
     outputs:
       success: ${{ steps.mark_success.outputs.success }}
@@ -258,11 +260,8 @@ jobs:
         # Get outputs as json
         outputs_json=$(terraform output -json)
 
-        # The outputs parameters expects a list of key=keyName,valueString=value key=key2Name,valueString=value2 etc...
-        # So here we convert the output json into a shell array
-        # NOTE: This will probably not play nicely with complex output objects (non primitives)
-
-        formatted_outputs=( $(echo $outputs_json | jq -r "to_entries|map(\"key=\(.key),valueString=\(.value.value|tostring)\")|.[]") )
+        # Map Terraform output JSON to Proton outputs JSON
+        formatted_outputs=( $(echo $outputs_json | jq "to_entries|map({key: .key, valueString: .value.value})") )
       
         # Notify proton
         aws proton notify-resource-deployment-status-change --region ${{ needs.get-deployment-data.outputs.proton_region }} --resource-arn ${{ needs.get-deployment-data.outputs.resource_arn }} --status SUCCEEDED --deployment-id ${{ needs.get-deployment-data.outputs.deployment_id }} --outputs "${formatted_outputs[*]}"
@@ -309,7 +308,6 @@ jobs:
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       id: tf_init
-      continue-on-error: true
       run: terraform init -backend-config="bucket=${{ needs.get-deployment-data.outputs.state_bucket }}" -backend-config="key=${{ needs.get-deployment-data.outputs.working_directory }}terraform.tfstate" -backend-config="region=${{ needs.get-deployment-data.outputs.target_region }}"
     
     - name: Terraform Destroy (Add-ons)
