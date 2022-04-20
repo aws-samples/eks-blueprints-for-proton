@@ -160,6 +160,8 @@ jobs:
 
     if: needs.get-deployment-data.result == 'success' && needs.get-deployment-data.outputs.is_deleted == 'false'
 
+    continue-on-error: true
+
     outputs:
       success: ${{ steps.mark_success.outputs.success }}
 
@@ -306,7 +308,6 @@ jobs:
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       id: tf_init
-      continue-on-error: true
       run: terraform init -backend-config="bucket=${{ needs.get-deployment-data.outputs.state_bucket }}" -backend-config="key=${{ needs.get-deployment-data.outputs.working_directory }}terraform.tfstate" -backend-config="region=${{ needs.get-deployment-data.outputs.target_region }}"
     
     - name: Terraform Destroy (Add-ons)
