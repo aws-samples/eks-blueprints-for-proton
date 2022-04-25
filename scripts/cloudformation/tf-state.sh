@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 # Get the Thumbprint for GitHub OIDC provider
 HOST=$(curl -s https://vstoken.actions.githubusercontent.com/.well-known/openid-configuration | jq -r '.jwks_uri | split("/")[2]')
 
