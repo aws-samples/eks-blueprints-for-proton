@@ -12,6 +12,6 @@ output "eks_cluster_id" {
 
 output "eks_cluster_version" {
   description = "The version of the EKS cluster."
-  value = module.local.eks_cluster_version
+  value = locals.eks_cluster_version
 }
 
