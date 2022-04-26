@@ -27,6 +27,8 @@ For Terraform to be able to deploy/vend clusters, it needs to assume a proper IA
 
 Retrieve the role ARN and the S3 bucket name from the stack above and update the [env-config.json](./env_config.json) file in your GitHub repository. Make sure to update the `region` parameter to the region you are using. 
 
+> Remember to commit and push these changes to your GitHub repository  
+
 Create two IAM users that you will be using to mimic the `platform administrator` and the `developer`: 
 - `protonadmin` (with the AWS managed `AWSProtonFullAccess` policy)
 - `protondev` (with the AWS managed `AWSProtonDeveloperAccess` policy)
@@ -77,6 +79,8 @@ You should see something like this:
 #### Deploy the cluster via Proton
 
 Now that a platform administrator has configured the template that represents the organization standard for an EKS cluster, logout from the console and login with the `protondev` user. 
+
+> Before moving forward double-check that GitHub Actions are enabled for your repository because the next steps will eventually trigger the workflows.
 
 Navigate to the `Environments` page in Proton and click `Create environment`. Select the environment template you created above and click `Configure`. In the `Provisioning` section select `Self-managed provisioning`. In the `Provisioning repository details` select `GitHub`, in `CodeStar connection` select your GitHub account, in the `Repository name` select the GitHub repo you create (or forked) above and `main` as the `Branch name`. Provide an `Environment name` and an `Environment description` of your choice and click `Next`.
 
@@ -153,7 +157,7 @@ As a platform administrator you may get to the point where you bless another Kub
         kubernetes_version:
           type: string
           description: Kubernetes Version
-          enum: ["1.21", 1.22]
+          enum: ["1.21", "1.22"]
           default: "1.22"
 ```
 
@@ -183,7 +187,9 @@ This will trigger a workflow identical to the one we triggered with the deployme
 
 > Note: in this example we are updating both the template and an input parameter in that template. In general these can be orthogonal processes. That is, you can update the template functionalities without necessarily exposing the user new or different parameters, or you can update input parameters without having to update a template. Refer to [this Proton documentation page](https://docs.aws.amazon.com/proton/latest/adminguide/ag-env-update.html) for more details about environments updates. Also remember that this EKS Blueprint template is only provided as part of a demonstration tutorial. If you are deep into Terraform and EKS/Kubernetes you can build a template that better fits your own needs. Refer to the [EKS Blueprints repo](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) for all the options available. 
 
+#### Deleting the cluster
 
+When you are done with the test you may want to delete the cluster to avoid incurring into undesired infrastructure costs. From the Proton console go into the environment you have deployed and select `Delete`. This will trigger the same workflow of the deployment and the update. Proton will open a PR against the repository which, when merged, will call the Terraform destroy workflows defined in GitHub Actions.
 
 
  
