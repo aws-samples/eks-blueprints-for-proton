@@ -15,7 +15,3 @@ output "eks_cluster_version" {
   value = local.eks_cluster_version
 }
 
-output "aws_load_balancer_controller" {
-  description = "AWS Load Balancer controller."
-  value = var.environment.inputs.aws_load_balancer_controller
-}
