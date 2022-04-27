@@ -21,11 +21,9 @@ Go to the Proton console and switch to the `Settings/Repositories` page. Add the
 
 ![proton_registry](images/proton_registry.png)
 
-For Terraform to be able to deploy/vend clusters, it needs to assume a proper IAM role. In addition, since for our solution we will use Terraform open source, we also need an S3 bucket to save the Terraform state. To do this please follow the instructions [at this page](./scripts/cloudformation/README.md).   
+For Terraform to be able to deploy/vend clusters, it needs to assume a proper IAM role. In addition, since for our solution we will use Terraform open source, we also need an S3 bucket to save the Terraform state. To do this please follow the instructions [at this page](./scripts/README.md).
 
-> The above is a one-off CFN stack we use to create an IAM role and S3 bucket. If you are vested in Terraform and want to use Terraform to create these two objects it's perfectly fine. 
-
-Retrieve the role ARN and the S3 bucket name from the stack above and update the [env-config.json](./env_config.json) file in your GitHub repository. Make sure to update the `region` parameter to the region you are using. 
+Retrieve the role ARN and the S3 bucket name from the output of the IaC above and update the [env-config.json](./env_config.json) file in your GitHub repository. Make sure to update the `region` parameter to the region you are using.
 
 Create two IAM users that you will be using to mimic the `platform administrator` and the `developer`: 
 - `protonadmin` (with the AWS managed `AWSProtonFullAccess` policy)
