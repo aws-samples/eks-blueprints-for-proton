@@ -10,8 +10,3 @@ output "eks_cluster_id" {
   value = module.eks_blueprints.eks_cluster_id
 }
 
-output "eks_cluster_version" {
-  description = "The version of the EKS cluster."
-  value = locals.eks_cluster_version
-}
-
