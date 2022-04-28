@@ -80,7 +80,7 @@ Now that a platform administrator has configured the template that represents th
 
 > Before moving forward double-check that GitHub Actions are enabled for your repository because the next steps will eventually trigger the workflows.
 
-Navigate to the `Environments` page in Proton and click `Create environment`. Select the environment template you created above and click `Configure`. In the `Provisioning` section select `Self-managed provisioning`. In the `Provisioning repository details` select `GitHub`, in `CodeStar connection` select your GitHub account, in the `Repository name` select the GitHub repo you create (or forked) above and `main` as the `Branch name`. Provide an `Environment name` and an `Environment description` of your choice and click `Next`.
+Navigate to the `Environments` page in Proton and click `Create environment`. Select the environment template you created above and click `Configure`. In the `Provisioning` section select `Self-managed provisioning`. In the `Provisioning repository details` select `Existing repository`, in the `Repository name` select the GitHub repo you created (or forked) above and `main` as the `Branch name`. Provide an `Environment name` and an `Environment description` of your choice and click `Next`.
 
 You should now see something like this:
 
@@ -95,7 +95,7 @@ Click `Next` and in the next summary form click `Create`. This will trigger your
 This will trigger the following process:
 - Proton will merge the Terraform template with your inputs and create a PR in the repository you specified (in our tutorial it's the same repository that hosts the template, but you probably want these to be two separate repositories in a production setup - just remember to add them both to the Proton `Repositories` page you configured at the beginning)
 - The [GitHub action example that ships with this repository](.github/workflows/proton-run.yml) will trigger to run a plan and check everything is in good shape 
-- The PR will be merged (this can be a manual step performed by a platform administrator or because Proton creates enough guardrails for the PR to be legit, the repository can be configured to perform an auto-merge)
+- The PR will be created (its merging can be a manual step performed by a platform administrator upon a code review or, because Proton creates enough guardrails for the PR to be legit, the repository can be configured to perform an auto-merge)
 - Once the PR is merged the GH action provided as an example in the repository will kick off again and this time it will go till the `terraform apply` stage effectively deploying the cluster 
 - When the `apply` has completed the action will notify Proton with the `output` which consists of the `eks aws` command to configure the `config` file to point `kubectl` to the cluster you just deployed. 
 
