@@ -2,7 +2,7 @@
 # Consume EKS Blueprints module
 #---------------------------------------------------------------
 module "eks_blueprints" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=acd5ffa932e788afd065da562f6df41c1ef9c9c0"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.0.4"
 
   # ENV Tags
   tenant      = "${random_id.this.hex}-${local.tenant}"
@@ -28,7 +28,7 @@ module "eks_blueprints" {
 # Consume eks-blueprints/kubernetes-addons module
 #-------------------------------------------------------------------
 module "kubernetes_addons" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=acd5ffa932e788afd065da562f6df41c1ef9c9c0"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=v4.0.4"
 
   eks_cluster_id = module.eks_blueprints.eks_cluster_id
 
