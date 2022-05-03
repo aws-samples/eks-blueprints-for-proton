@@ -10,3 +10,12 @@ output "eks_cluster_id" {
   value       = module.eks_blueprints.eks_cluster_id
 }
 
+output "eks_cluster_version" {
+  description = "The version of the EKS cluster."
+  value       = module.eks_blueprints.cluster_version
+}
+
+output "enable_aws_load_balancer_controller" {
+  description = "The flag for the Load Balancer controller."
+  value       = module.eks_blueprints.enable_aws_load_balancer_controller
+}
