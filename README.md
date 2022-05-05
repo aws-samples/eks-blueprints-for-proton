@@ -28,7 +28,7 @@ Create an IAM user that you will be using to represent the developer persona (i.
 
 This user needs a bit more power in addition to the managed `AWSProtonDeveloperAccess` IAM policy. 
 
-Because, in Proton, a developer with the standard `AWSProtonDeveloperAccess` is not allowed to deploy an environment, you need to add the ability to `CreateEnvironment` as well as to `PassRole` (to the Proton service). In addition, to use the `aws eks update-kubeconfig` command to create the `config` file that kubectl will use, the `protondev` must be able to `DescribeCluster`. Lastly, for convenience if you want to use the Cloud Shell with the `protondev` user, that policy must be allowed explicitly.  
+Because, in Proton, a developer with the standard `AWSProtonDeveloperAccess` is not allowed to deploy an environment, you need to add the ability to `CreateEnvironment`, `UpdateEnvironment`, `DeleteEnvironment` as well as to `PassRole` (to the Proton service). In addition, to use the `aws eks update-kubeconfig` command to create the `config` file that kubectl will use, the `protondev` must be able to `DescribeCluster`. Lastly, for convenience if you want to use the Cloud Shell with the `protondev` user, that policy must be allowed explicitly.  
 
 The following is an inline policy for the `protondev` user to add these additional permissions required: 
 ```
@@ -49,6 +49,8 @@ The following is an inline policy for the `protondev` user to add these addition
             "Effect": "Allow",
             "Action": [
                 "proton:CreateEnvironment",
+                "proton:UpdateEnvironment",
+                "proton:DeleteEnvironment",
                 "iam:ListRoles"
             ],
             "Resource": "*"
@@ -96,6 +98,7 @@ Navigate to the `Environments` page in the Proton console and click `Create envi
 Give your cluster a name, leave the vpc_cidr as is and add your AWS IAM user (`protondev`) to the input `user`. You should now see something like this:
 
 ![configure_cluster_deployment](images/configure_cluster_deployment.png)
+
 
 The EKS Blueprints will enable the user you enter to assume an IAM role that has been defined as a Kubernetes cluster admin in the K8s RBAC (we'll play with this later). The list of add-ons has been provided as an example. Flag or unflag them at your discretion. Should you use this solution in production you may want to check in the EKS Blueprints all the add-ons supported and include what you need in your own Proton template. 
 
@@ -181,7 +184,7 @@ Remember this solution allows a central platform team to maintain a set of stand
           default: "1.22"
 ```
 
-When you push this commit to your repository in GitHub, Proton will detect the change in the template. If you log in with the administrative user you will see in the details of your `Environment template` that there is a new version in the `Draft` stage. You can click `Publish`, and it will become the new default minor version for that template. 
+When you push this commit to your repository in GitHub, Proton will detect the change in the template. If you login with the administrative user you will see in the details of your `Environment template` that there is a new version in the `Draft` stage. You can click `Publish`, and it will become the new default minor version for that template. 
 
 This means that every cluster a developer will deploy with this template can be deployed with either versions (because `1.21` and `1.22` are both valid options). However, it is also possible to upgrade an existing 1.21 cluster to the new 1.22 version. 
 
@@ -193,15 +196,15 @@ Your environment template should now look like this:
 
 #### Updating an existing cluster
 
-Now that a Proton administrator have updated the template, login back as the `protondev` user and open your Proton environment that represents the cluster you deployed above. You will notice that there is a message that says that there is a new template available. You can now update your environment to apply the new template and change the inputs. 
+Now that a Proton administrator have updated the template, login back as the `protondev` user and open your Proton environment that represents the cluster you deployed above. You will notice that there is a message, in the `Template version` field, that says that there is a new template available. You can now update your environment to apply the new template and change the inputs. 
 
-> Note: in this example we are updating both the template and an input parameter in that template. In general these can be orthogonal processes. That is, you can update the template functionalities without necessarily exposing the user new or different parameters, or you can update input parameters without having to update a template. Refer to [this Proton documentation page](https://docs.aws.amazon.com/proton/latest/adminguide/ag-env-update.html) for more details about environments updates. Also remember that this EKS Blueprint template is only provided as part of a demonstration tutorial. If you are deep into Terraform and EKS/Kubernetes you can build a template that better fits your own needs. Refer to the [EKS Blueprints repo](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) for all the options available.
+> Note: in this example we are updating both the template and an input parameter in that template. In general these can be separate processes. That is, you can update the template functionalities without necessarily exposing the user new or different parameters, or you can update input parameters without having to update a template. Refer to [this Proton documentation page](https://docs.aws.amazon.com/proton/latest/adminguide/ag-env-update.html) for more details about environments updates. Also remember that this EKS Blueprint template is only provided as part of a demonstration tutorial. If you are deep into Terraform and EKS/Kubernetes you can build a template that better fits your own needs. Refer to the [EKS Blueprints repo](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) for all the options available.
 
 In our scenario, you have to go to the Proton environment and click `Update minor`: 
 
 ![update_environment](images/update_environment.png)
 
-At the next screen click `Edit` to get access and update your cluster parameters. Here you can set the cluster version to 1.22:
+At the next screen leave everything unchanged and click `Edit` to get access and update your cluster parameters. Here you can set the cluster version to 1.22:
 
 ![edit_cluster_params](images/edit_cluster_params.png)
 
