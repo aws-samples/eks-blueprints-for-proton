@@ -1,6 +1,6 @@
 # Core Resources
 
-In order to provision our Proton Terraform environments from within Github Actions, we'll need to provision two core resources up front.
+In order to provision our Proton environments via Terraform from within Github Actions, we'll need to provision two core resources up front.
 
 1. IAM Identity Provider and an IAM Role used by Github Actions to authenticate with AWS and run Terraform.
 
