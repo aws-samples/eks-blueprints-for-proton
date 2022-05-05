@@ -1,6 +1,6 @@
 {
-  "deploymentId" : "7347403a-c1f8-4ab8-a00d-80e8897ab308",
-  "isResourceDeleted" : false,
+  "deploymentId" : "<proton-resource-deleted>",
+  "isResourceDeleted" : true,
   "resourceMetadata" : {
     "arn" : "arn:aws:proton:us-west-2:005191682373:environment/myeks",
     "templateArn" : "arn:aws:proton:us-west-2:005191682373:environment-template/eks-mng-karpenter-with-new-vpc",
