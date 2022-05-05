@@ -1,6 +1,3 @@
-## Note for folks testing this as of 4/14 and through likely ALL April: Proton IAM policies are currently being fixed so ignore ALL steps to create dev and admin users (only test the workflow below with an admin user at the AWS account level)  
-
-
 #### What is the goal of this tutorial?
 
 This repository includes a template example to configure AWS Proton as a vending machine for EKS cluster using Terraform. For more information about this use case please read this [blog post](). This tutorial is not intended to be used as-is for production. It provides an example of how to use Proton for this specific scenario. 
@@ -27,11 +24,9 @@ Retrieve the role ARN and the S3 bucket name from the output of the IaC above an
 
 > Remember to commit and push these changes to your GitHub repository  
 
-Create two IAM users that you will be using to mimic the `platform administrator` and the `developer`: 
-- `protonadmin` (with the AWS managed `AWSProtonFullAccess` policy)
-- `protondev` (with the AWS managed `AWSProtonDeveloperAccess` policy)
+Create an IAM user that you will be using to mimic the `developer`. Call it `protondev` and attach the AWS managed `AWSProtonDeveloperAccess` policy.
 
-Because in Proton a developer, with the standard `AWSProtonDeveloperAccess`, is not allowed to deploy an environment, you need to add this inline policy to the `protondev` user: 
+Because, in Proton, a developer with the standard `AWSProtonDeveloperAccess` is not allowed to deploy an environment, you need to add this inline policy to the `protondev` user: 
 ```
 {
     "Version": "2012-10-17",
@@ -60,7 +55,7 @@ Because in Proton a developer, with the standard `AWSProtonDeveloperAccess`, is 
 
 #### Create the environment template in Proton
 
-Now that you configured the core requirements in your accounts, login as `protonadmin` in the console and create the environment template that Proton will use to vend clusters. 
+Now that you configured the core requirements in your accounts, create the environment template that Proton will use to vend clusters. 
 
 Switch to the `Templates/Environment templates` page in the Proton console and click `Create environment template`. In the `Template bundle source` select `Sync templates from Git`. Pick the repository in your account, set the Branch name to main. In the Template details set `eks-mng-karpenter-with-new-vpc` as the `Template name`.
 
@@ -86,9 +81,9 @@ You should now see something like this:
 
 ![configure_cluster_deployment](images/configure_cluster_deployment.png)
 
-Give your cluster a name, leave the vpc_cidr as is and add your AWS IAM user (`protondev`) to the input `user`. The EKS Blueprints will enable the user you enter to assume an IAM role that has been defined a Kubernetes cluster admin in the K8s RBAC. At your discretion, and based on your potential needs, enable or disable the add-ons available.
+Give your cluster a name, leave the vpc_cidr as is and add your AWS IAM user (`protondev`) to the input `user`. The EKS Blueprints will enable the user you enter to assume an IAM role that has been defined as a Kubernetes cluster admin in the K8s RBAC. The list of add-ons has been provided as an example. Flag or unflag them at your discretion. Should you use this solution in production you may want to check in the EKS Blueprints all the add-ons supported and include what you need in your own Proton template. 
 
-This is where the magic starts to happen. The input parameters you see here (which are obviously related to the EKS cluster you are about to provision) are part of the sample template provided in the repo but that you can fully customize based on your needs. Specifically the [main.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/main.tf) file is where the [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) module is imported and where the core configuration is defined. The [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file is where all the inputs get defined. Note that in the template sample we created in the repo the only Kubernetes version you can pick is 1.21 because we pretend that this is the only version that the platform team at your org has vetted and is supporting internally.
+This is where the magic happens. The input parameters you see here (which are obviously related to the EKS cluster you are about to provision) are part of the sample template provided in the repo but that you can fully customize based on your needs. Specifically the [main.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/main.tf) file is where the [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) module is imported and where the core configuration is defined. The [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file is where all the inputs get defined. Note that in the template sample we created in the repo the only Kubernetes version you can pick is 1.21 because we pretend that this is the only version that the platform team at your org has vetted and is supporting internally.
 
 Click `Next` and in the next summary form click `Create`. This will trigger your cluster creation. 
 
@@ -159,7 +154,7 @@ As a platform administrator you may get to the point where you bless another Kub
           default: "1.22"
 ```
 
-When you push this commit to your repository in GitHub, Proton will detect the change in the template. If you login with your `protonadmin` user you will see in the details of your `Environment template` that there is a new version in the `Draft` stage. You can click `Publish`, and it will become the new default minor version for that template. 
+When you push this commit to your repository in GitHub, Proton will detect the change in the template. If you login with the administrative user you will see in the details of your `Environment template` that there is a new version in the `Draft` stage. You can click `Publish`, and it will become the new default minor version for that template. 
 
 This means that every cluster a developer will deploy with this template can be deployed with either versions (because `1.21` and `1.22` are both valid options). However, it is also possible to upgrade an existing 1.21 cluster to the new 1.22 version. 
 
