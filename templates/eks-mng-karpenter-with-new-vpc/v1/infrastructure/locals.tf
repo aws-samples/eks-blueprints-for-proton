@@ -17,11 +17,11 @@ locals {
 
   managed_node_groups = {
     mng = {
-      node_group_name = "${local.eks_cluster_id}-managed-ondemand"
+      node_group_name = "${local.eks_cluster_id}-mng"
       instance_types  = ["m5.xlarge"]
       subnet_ids      = module.aws_vpc.private_subnets
-      desired_size    = 1
-      max_size        = 1
+      desired_size    = 3
+      max_size        = 5
       min_size        = 1
     }
   }
@@ -38,20 +38,20 @@ locals {
   #----------------------------------------------------------------
   # ADD ONs
   #----------------------------------------------------------------
+
   amazon_eks_vpc_cni_config = {
     addon_name               = "vpc-cni"
-    addon_version            = "v1.7.5-eksbuild.2"
     service_account          = "aws-node"
     resolve_conflicts        = "OVERWRITE"
     namespace                = "kube-system"
-    additional_iam_policies  = []
     service_account_role_arn = ""
+    additional_iam_policies  = []
     tags                     = {}
   }
 
   amazon_eks_coredns_config = {
     addon_name               = "coredns"
-    addon_version            = "v1.8.3-eksbuild.1"
+    addon_version            = data.aws_eks_addon_version.coredns.version
     service_account          = "coredns"
     resolve_conflicts        = "OVERWRITE"
     namespace                = "kube-system"
@@ -62,12 +62,12 @@ locals {
 
   amazon_eks_kube_proxy_config = {
     addon_name               = "kube-proxy"
-    addon_version            = "v1.20.7-eksbuild.1"
+    addon_version            = data.aws_eks_addon_version.kube_proxy.version
     service_account          = "kube-proxy"
     resolve_conflicts        = "OVERWRITE"
     namespace                = "kube-system"
-    additional_iam_policies  = []
     service_account_role_arn = ""
+    additional_iam_policies  = []
     tags                     = {}
   }
 }

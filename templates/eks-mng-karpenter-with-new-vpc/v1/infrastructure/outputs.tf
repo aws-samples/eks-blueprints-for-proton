@@ -10,6 +10,16 @@ output "eks_cluster_id" {
   value       = module.eks_blueprints.eks_cluster_id
 }
 
+data "aws_eks_addon_version" "coredns" {
+  addon_name         = "coredns"
+  kubernetes_version = local.eks_cluster_version
+}
+
+data "aws_eks_addon_version" "kube_proxy" {
+  addon_name         = "kube-proxy"
+  kubernetes_version = local.eks_cluster_version
+}
+
 /*
 output "cluster_version" {
   description = "The version of the EKS cluster."
