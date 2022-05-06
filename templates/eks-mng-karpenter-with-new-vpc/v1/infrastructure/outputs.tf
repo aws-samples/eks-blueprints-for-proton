@@ -10,24 +10,12 @@ output "eks_cluster_id" {
   value       = module.eks_blueprints.eks_cluster_id
 }
 
-data "aws_eks_addon_version" "coredns" {
-  addon_name         = "coredns"
-  kubernetes_version = local.eks_cluster_version
-}
-
-data "aws_eks_addon_version" "kube_proxy" {
-  addon_name         = "kube-proxy"
-  kubernetes_version = local.eks_cluster_version
-}
-
-/*
 output "cluster_version" {
   description = "The version of the EKS cluster."
-  value       = module.eks_blueprints.cluster_version
+  value       = var.environment.inputs.kubernetes_version
 }
 
 output "enable_aws_load_balancer_controller" {
   description = "The flag for the Load Balancer controller."
-  value       = module.kubernetes_addons.enable_aws_load_balancer_controller
+  value       = var.environment.inputs.aws_load_balancer_controller
 }
-*/
