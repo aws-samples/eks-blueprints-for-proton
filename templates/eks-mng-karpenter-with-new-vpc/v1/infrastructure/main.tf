@@ -1,6 +1,7 @@
 #---------------------------------------------------------------
 # Consume EKS Blueprints module
 #---------------------------------------------------------------
+
 module "eks_blueprints" {
   source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.0.4"
 
@@ -27,26 +28,25 @@ module "eks_blueprints" {
 #-------------------------------------------------------------------
 # Consume eks-blueprints/kubernetes-addons module
 #-------------------------------------------------------------------
+
 module "kubernetes_addons" {
   source = "github.com/aws-ia/terraform-aws-eks-blueprints//modules/kubernetes-addons?ref=v4.0.4"
 
   eks_cluster_id = module.eks_blueprints.eks_cluster_id
 
   # EKS Managed Add-ons
-  enable_amazon_eks_vpc_cni    = true
-  amazon_eks_vpc_cni_config    = local.amazon_eks_vpc_cni_config
-  enable_amazon_eks_coredns    = true
-  amazon_eks_coredns_config    = local.amazon_eks_coredns_config
+  enable_amazon_eks_coredns = true
+  amazon_eks_coredns_config = local.amazon_eks_coredns_config
+
   enable_amazon_eks_kube_proxy = true
   amazon_eks_kube_proxy_config = local.amazon_eks_kube_proxy_config
 
-  #K8s Add-ons
-  enable_aws_load_balancer_controller = var.environment.inputs.aws_load_balancer_controller
-  enable_metrics_server               = var.environment.inputs.metrics_server
+  # K8s Add-ons
   enable_aws_for_fluentbit            = var.environment.inputs.aws_for_fluentbit
+  enable_aws_load_balancer_controller = var.environment.inputs.aws_load_balancer_controller
   enable_cert_manager                 = var.environment.inputs.cert_manager
+  enable_metrics_server               = var.environment.inputs.metrics_server
   enable_vpa                          = var.environment.inputs.vpa
-  enable_karpenter                    = var.environment.inputs.karpenter
 
   depends_on = [module.eks_blueprints.managed_node_groups]
 }
