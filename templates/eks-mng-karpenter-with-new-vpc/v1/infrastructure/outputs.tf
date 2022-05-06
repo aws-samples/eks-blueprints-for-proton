@@ -19,3 +19,8 @@ output "enable_aws_load_balancer_controller" {
   description = "The flag for the Load Balancer controller."
   value       = var.environment.inputs.aws_load_balancer_controller
 }
+
+output "enable_karpenter" {
+  description = "The flag for Karpenter."
+  value       = var.environment.inputs.karpenter
+}
