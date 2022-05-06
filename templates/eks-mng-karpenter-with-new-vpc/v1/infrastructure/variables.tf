@@ -21,9 +21,9 @@ variable "environment" {
   default = {
     inputs = {
       kubernetes_version           = "1.22"
-      cluster_name                 = "proton-test-cluster"
+      cluster_name                 = "proton-blueprint-cluster"
       vpc_cidr                     = "10.0.0.0/16"
-      user                         = "eks-admin"
+      user                         = "<user>"
       aws_load_balancer_controller = true
       metrics_server               = true
       aws_for_fluentbit            = true
