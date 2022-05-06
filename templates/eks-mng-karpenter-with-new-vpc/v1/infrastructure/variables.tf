@@ -3,7 +3,7 @@ variable "aws_region" {
   default = "us-west-1"
 }
 
-variable "environment" {
+variable "environment_for_local_test" {
   type = object({
     inputs = object({
       kubernetes_version           = any
