@@ -45,6 +45,7 @@ module "kubernetes_addons" {
   enable_aws_for_fluentbit            = var.environment.inputs.aws_for_fluentbit
   enable_aws_load_balancer_controller = var.environment.inputs.aws_load_balancer_controller
   enable_cert_manager                 = var.environment.inputs.cert_manager
+  enable_karpenter                    = var.environment.inputs.karpenter
   enable_metrics_server               = var.environment.inputs.metrics_server
   enable_vpa                          = var.environment.inputs.vpa
 
