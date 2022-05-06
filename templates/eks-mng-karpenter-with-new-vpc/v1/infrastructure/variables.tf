@@ -20,7 +20,7 @@ variable "environment" {
   })
   default = {
     inputs = {
-      kubernetes_version           = "1.22"
+      kubernetes_version           = "1.21"
       cluster_name                 = "proton-blueprint-cluster"
       vpc_cidr                     = "10.0.0.0/16"
       user                         = "<user>"
