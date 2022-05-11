@@ -102,7 +102,7 @@ Give your cluster a name, leave the vpc_cidr as is and add your AWS IAM user (`p
 
 The EKS Blueprints will enable the user you enter to assume an IAM role that has been defined as a Kubernetes cluster admin in the K8s RBAC (we'll play with this later). The list of add-ons has been provided as an example. Flag or unflag them at your discretion. Should you use this solution in production you may want to check in the EKS Blueprints all the add-ons supported and include what you need in your own Proton template. For example, you may want to expose the size of the cluster either in terms of nodes (min, max) or in t-shirt sizes (small, medium, large). This example template hard code the size of the cluster, but it's really all up to the platform team to decide what parameters to expose to developers.
 
-This is where the magic happens. The input parameters you see here (which are obviously related to the EKS cluster you are about to provision) are part of the sample template provided in the repo but that you can fully customize based on your needs. Specifically the [main.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/main.tf) file is where the [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) module is imported and where the core configuration is defined. The [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file is where all the inputs get defined. The [outputs.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/outputs.tf) file is where all the outputs that will be presented in the Proton console get defined. Note that in the template sample we created in the repo the only Kubernetes version you can pick is 1.21 because we pretend that this is the only version that the platform team at your org has vetted and is supporting internally.
+This is where the magic happens. The input parameters you see here (which are obviously related to the EKS cluster you are about to provision) are part of the sample template provided in the repo but that you can fully customize based on your needs. Specifically the [main.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/main.tf) file is where the [EKS Blueprints](https://github.com/aws-ia/terraform-aws-eks-blueprints/blob/main/docs/getting-started.md) module is imported and where the core configuration is defined. The [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file is where all the inputs get defined. The [outputs.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/outputs.tf) file is where all the outputs that will be presented in the Proton console get defined. Note that in the template sample we created in the repo the only Kubernetes version you can pick is 1.20 because we pretend that this is the only version that the platform team at your org has vetted and is supporting internally.
 
 Click `Next` and in the next summary form click `Create`. This will kick off your cluster creation. 
 
@@ -130,7 +130,7 @@ You should still be logged in as `protondev`. You can now open a Cloud Shell and
 [cloudshell-user@ip-10-0-70-52 ~]$ aws eks --region us-west-2 update-kubeconfig --name 6946-myekscluster --role-arn arn:aws:iam::336419811389:role/6946-aws001-preprod-dev-platform-team-Access
 Added new context arn:aws:eks:us-west-2:336419811389:cluster/6946-myekscluster to /home/cloudshell-user/.kube/config
 
-[cloudshell-user@ip-10-0-70-52 ~]$ ./kubectl get pods -A
+[cloudshell-user@ip-10-0-70-52 ~]$ kubectl get pods -A
 NAMESPACE        NAME                                            READY   STATUS    RESTARTS   AGE
 cert-manager     cert-manager-646968b67-tj6zd                    1/1     Running   0          103m
 cert-manager     cert-manager-cainjector-7d55bf8f78-k6p2w        1/1     Running   0          103m
@@ -147,19 +147,21 @@ metrics-server   metrics-server-694d47d564-wb5jv                 1/1     Running
 vpa              vpa-recommender-554f56647b-pq2g5                1/1     Running   0          104m
 vpa              vpa-updater-67d6c5c7cf-b2hsd                    1/1     Running   0          104m
 
-[cloudshell-user@ip-10-0-70-52 ~]$ ./kubectl get nodes
+[cloudshell-user@ip-10-0-70-52 ~]$ kubectl get nodes
 NAME                                        STATUS   ROLES    AGE    VERSION
-ip-10-0-11-250.us-west-2.compute.internal   Ready    <none>   105m   v1.21.5-eks-9017834
+ip-10-0-10-125.us-west-2.compute.internal   Ready    <none>   105m   v1.20.11-eks-f17b81
+ip-10-0-11-68.us-west-2.compute.internal    Ready    <none>   105m   v1.20.11-eks-f17b81
+ip-10-0-12-132.us-west-2.compute.internal   Ready    <none>   105m   v1.20.11-eks-f17b81
 
-[cloudshell-user@ip-10-0-70-52 ~]$ ./kubectl cluster-info
+[cloudshell-user@ip-10-0-70-52 ~]$ kubectl cluster-info
 Kubernetes control plane is running at https://FEEEFE9EC8CE64A2F90269827F8CB045.gr7.us-west-2.eks.amazonaws.com
 CoreDNS is running at https://FEEEFE9EC8CE64A2F90269827F8CB045.gr7.us-west-2.eks.amazonaws.com/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
-[cloudshell-user@ip-10-0-70-52 ~]$ ./kubectl version
+[cloudshell-user@ip-10-0-70-52 ~]$ kubectl version
 Client Version: version.Info{Major:"1", Minor:"23", GitVersion:"v1.23.5", GitCommit:"c285e781331a3785a7f436042c65c5641ce8a9e9", GitTreeState:"clean", BuildDate:"2022-03-16T15:58:47Z", GoVersion:"go1.17.8", Compiler:"gc", Platform:"linux/amd64"}
-Server Version: version.Info{Major:"1", Minor:"21+", GitVersion:"v1.21.9-eks-0d102a7", GitCommit:"eb09fc479c1b2bfcc35c47416efb36f1b9052d58", GitTreeState:"clean", BuildDate:"2022-02-17T16:36:28Z", GoVersion:"go1.16.12", Compiler:"gc", Platform:"linux/amd64"}
+Server Version: version.Info{Major:"1", Minor:"20+", GitVersion:"v1.20.15-eks-14c7a48", GitCommit:"eb09fc479c1b2bfcc35c47416efb36f1b9052d58", GitTreeState:"clean", BuildDate:"2022-04-01T03:14:50Z", GoVersion:"go1.15.15", Compiler:"gc", Platform:"linux/amd64"}
 WARNING: version difference between client (1.23) and server (1.21) exceeds the supportedhttps://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-console.html minor version skew of +/-1
 [cloudshell-user@ip-10-0-70-52 ~]$ 
 ```
@@ -175,18 +177,18 @@ How do you maintain this cluster then? We are glad you asked.
 
 #### Updating the Proton cluster template
 
-Remember this solution allows a central platform team to maintain a set of standards (one of which is the Kubernetes cluster version). As a platform administrator you may get to the point where you bless another Kubernetes version. In this case let's simulate that you have verified K8s version `1.22` adheres to your organization standards, and you want to make it available to you developers. The only thing you need to do is to update the [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file in your own repository (the repository you are using with Proton) to include the new version. Specifically you need to configure the `kubernetes_version` variable to accept both `1.21` and `1.22` and change the default to `1.22` as follows: 
+Remember this solution allows a central platform team to maintain a set of standards (one of which is the Kubernetes cluster version). As a platform administrator you may get to the point where you bless another Kubernetes version. In this case let's simulate that you have verified K8s version `1.21` adheres to your organization standards, and you want to make it available to you developers. The only thing you need to do is to update the [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file in your own repository (the repository you are using with Proton) to include the new version. Specifically you need to configure the `kubernetes_version` variable to accept both `1.20` and `1.21` and change the default to `1.21` as follows: 
 ```
         kubernetes_version:
           type: string
           description: Kubernetes Version
-          enum: ["1.21", "1.22"]
-          default: "1.22"
+          enum: ["1.20", "1.21"]
+          default: "1.21"
 ```
 
 When you push this commit to your repository in GitHub, Proton will detect the change in the template. If you login with the administrative user you will see in the details of your `Environment template` that there is a new version in the `Draft` stage. You can click `Publish`, and it will become the new default minor version for that template. 
 
-This means that every cluster a developer will deploy with this template can be deployed with either versions (because `1.21` and `1.22` are both valid options). However, it is also possible to upgrade an existing 1.21 cluster to the new 1.22 version. 
+This means that every cluster a developer will deploy with this template can be deployed with either versions (because `1.20` and `1.21` are both valid options). However, it is also possible to upgrade an existing 1.20 cluster to the new 1.21 version. 
 
 Your environment template should now look like this: 
 
@@ -204,7 +206,7 @@ In our scenario, you have to go to the Proton environment and click `Update mino
 
 ![update_environment](images/update_environment.png)
 
-At the next screen leave everything unchanged and click `Edit` to get access and update your cluster parameters. Here you can set the cluster version to 1.22:
+At the next screen leave everything unchanged and click `Edit` to get access and update your cluster parameters. Here you can set the cluster version to 1.21:
 
 ![edit_cluster_params](images/edit_cluster_params.png)
 
