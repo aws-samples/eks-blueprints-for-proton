@@ -132,20 +132,27 @@ Added new context arn:aws:eks:us-west-2:336419811389:cluster/6946-myekscluster t
 
 [cloudshell-user@ip-10-0-70-52 ~]$ kubectl get pods -A
 NAMESPACE        NAME                                            READY   STATUS    RESTARTS   AGE
-cert-manager     cert-manager-646968b67-tj6zd                    1/1     Running   0          103m
-cert-manager     cert-manager-cainjector-7d55bf8f78-k6p2w        1/1     Running   0          103m
-cert-manager     cert-manager-webhook-577f77586f-gm8n8           1/1     Running   0          103m
-karpenter        karpenter-85c577b548-rvf8b                      2/2     Running   0          104m
-kube-system      aws-load-balancer-controller-568fc98559-bzdr4   1/1     Running   0          104m
-kube-system      aws-load-balancer-controller-568fc98559-t5lkm   1/1     Running   0          104m
-kube-system      aws-node-mq68h                                  1/1     Running   0          103m
-kube-system      coredns-6968c9cbb-fvt7n                         1/1     Running   0          104m
-kube-system      coredns-6968c9cbb-ps2j6                         1/1     Running   0          104m
-kube-system      kube-proxy-rskv4                                1/1     Running   0          104m
-logging          aws-for-fluent-bit-b4dpz                        1/1     Running   0          103m
-metrics-server   metrics-server-694d47d564-wb5jv                 1/1     Running   0          104m
-vpa              vpa-recommender-554f56647b-pq2g5                1/1     Running   0          104m
-vpa              vpa-updater-67d6c5c7cf-b2hsd                    1/1     Running   0          104m
+NAMESPACE            NAME                                           READY   STATUS    RESTARTS   AGE
+aws-for-fluent-bit   aws-for-fluent-bit-42954                       1/1     Running   0          103m
+aws-for-fluent-bit   aws-for-fluent-bit-9srpk                       1/1     Running   0          103m
+aws-for-fluent-bit   aws-for-fluent-bit-rzj9m                       1/1     Running   0          103m
+cert-manager         cert-manager-5dbb9d7955-tcrfp                  1/1     Running   0          103m
+cert-manager         cert-manager-cainjector-7d55bf8f78-s54mm       1/1     Running   0          103m
+cert-manager         cert-manager-webhook-5c888754d5-rsw5f          1/1     Running   0          103m
+karpenter            karpenter-7b9cc6dc5b-wrdlz                     2/2     Running   0          104m
+kube-system          aws-load-balancer-controller-7686bcf8b-bp7rv   1/1     Running   0          104m
+kube-system          aws-load-balancer-controller-7686bcf8b-m47m6   1/1     Running   0          104m
+kube-system          aws-node-52hmg                                 1/1     Running   0          105m
+kube-system          aws-node-bxqt5                                 1/1     Running   0          105m
+kube-system          aws-node-zmhrr                                 1/1     Running   0          105m
+kube-system          coredns-86d9946576-5g46r                       1/1     Running   0          106m
+kube-system          coredns-86d9946576-vrldf                       1/1     Running   0          106m
+kube-system          kube-proxy-f5ph4                               1/1     Running   0          105m
+kube-system          kube-proxy-nzwbj                               1/1     Running   0          105m
+kube-system          kube-proxy-qz55d                               1/1     Running   0          105m
+kube-system          metrics-server-679944f8f6-264jl                1/1     Running   0          104m
+vpa                  vpa-recommender-fb896949d-xnknm                1/1     Running   0          104m
+vpa                  vpa-updater-7447f7657-9zkwc                    1/1     Running   0          104m
 
 [cloudshell-user@ip-10-0-70-52 ~]$ kubectl get nodes
 NAME                                        STATUS   ROLES    AGE    VERSION
@@ -213,6 +220,10 @@ At the next screen leave everything unchanged and click `Edit` to get access and
 Click `Next` and then `Update`. 
 
 This will trigger a workflow identical to the one we triggered with the deployment. Terraform, in this case, will `apply` the configuration to an existing cluster and the logic inside the EKS Blueprints module will know how to upgrade an EKS cluster. At the end of this process the GitHub action will notify Proton that the upgrade has completed.
+
+Please note that Kubernetes versions are a moving target. The examples in this README file refer to setting up version 1.20 and upgrading it to 1.21. Over time, your setup will require to use new EKS Blueprints module versions (as defined in the [main.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/main.tf) file and different Kubernetes cluster versions as defined in the [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file. 
+
+> Note: Kubernetes cluster upgrades are often heavy operations that have ramifications into add-on components and modules you use. In some cases they also have ramifications into how applications running on Kubernetes are defined. While EKS Blueprints help in that regard, it's important that you test these upgrades throughout. Also consider that there are a number of strategies you can use to surface Kubernetes versions in your Proton templates. In our quick example we have shown how to have multiple Kubernetes versions in the same template but another tactic could be to separate Kubernetes versions in dedicated Proton major template versions (in a 1:1 mapping between the Kubernetes version and the Proton template major version). Each approach has advantages and disadvantages that you need to factor in. You can read more about Proton templates versions [here](https://docs.aws.amazon.com/proton/latest/adminguide/ag-template-versions.html).    
 
 #### Deleting the cluster
 
