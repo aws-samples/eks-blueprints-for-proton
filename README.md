@@ -1,6 +1,6 @@
 #### What is the goal of this tutorial?
 
-This repository includes a template example to configure AWS Proton as a vending machine for EKS cluster using Terraform. For more information about this use case please read this [blog post](). This tutorial is not intended to be used as-is for production. It provides an example of how to use Proton for this specific scenario. The template is only provided to describe "the art of possible". 
+This repository includes a template example to configure AWS Proton as a vending machine for EKS clusters using Terraform. For more information about this use case please read this [blog post](). This tutorial is not intended to be used as-is for production. It provides an example of how to use Proton for this specific scenario. The template is only provided to describe "the art of possible". 
 
 #### Getting started and one-off configurations 
 
@@ -26,9 +26,7 @@ Retrieve the role ARN and the S3 bucket name from the output of the IaC above an
 
 Create an IAM user that you will be using to represent the developer persona (i.e. the person that will request the cluster). Call it `protondev` and attach the AWS managed `AWSProtonDeveloperAccess` policy.
 
-This user needs a bit more power in addition to the managed `AWSProtonDeveloperAccess` IAM policy. 
-
-Because, in Proton, a developer with the standard `AWSProtonDeveloperAccess` is not allowed to deploy an environment, you need to add the ability to `CreateEnvironment`, `UpdateEnvironment`, `DeleteEnvironment` as well as to `PassRole` (to the Proton service). In addition, to use the `aws eks update-kubeconfig` command to create the `config` file that kubectl will use, the `protondev` must be able to `DescribeCluster`. Lastly, for convenience if you want to use the Cloud Shell with the `protondev` user, that policy must be allowed explicitly.  
+This user needs a bit more power in addition to the managed `AWSProtonDeveloperAccess` IAM policy: because, in Proton, a developer with the standard `AWSProtonDeveloperAccess` is not allowed to deploy an environment, you need to add the ability to `CreateEnvironment`, `UpdateEnvironment`, `DeleteEnvironment` as well as to `PassRole` (to the Proton service). In addition, to use the `aws eks update-kubeconfig` command to create the `config` file that kubectl will use, the `protondev` must be able to `DescribeCluster`. Lastly, for convenience if you want to use the Cloud Shell with the `protondev` user, that policy must be allowed explicitly.  
 
 The following is an inline policy for the `protondev` user to add these additional permissions required: 
 ```
@@ -75,7 +73,7 @@ Now that you configured the core requirements in your accounts, create the envir
 
 > To do so we will continue to use the administrative user or role we have used so far in the tutorial. Some customers may want this part to be done by Proton administrators (i.e. entities with the `AWSProtonFullAccess` IAM policy associated or a variation of it).  
 
-Switch to the `Templates/Environment templates` page in the Proton console and click `Create environment template`. Leave all defaults except for a few fields. In the `Template bundle source` select `Sync templates from Git`. Pick the repository in your account, set the Branch name to main. In the Template details set `eks-mng-karpenter-with-new-vpc` as the `Template name`.
+Switch to the `Templates/Environment templates` page in the Proton console and click `Create environment template`. Leave all defaults except for the following fields: (1) in the `Template bundle source` select `Sync templates from Git`; (2) Pick the repository in your account; (3) set the Branch name to main; (4) in the Template details set `eks-mng-karpenter-with-new-vpc` as the `Template name`.
 
 > It is important that you set the name exactly to `eks-mng-karpenter-with-new-vpc` because Proton will scan the repo for that exact folder name (and version structure).
 
