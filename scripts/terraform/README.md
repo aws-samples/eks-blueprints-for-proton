@@ -16,3 +16,5 @@ Then run the script in this directory to use Terraform to provision the resource
 cd scripts/terraform/
 ./iac.sh
 ```
+
+Once this part of the setup is completed, please resume the steps in the main README from [where you left](../../README.md#getting-started-and-one-off-configurations). 
