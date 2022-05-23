@@ -22,3 +22,5 @@ Then launch the CFN stack and extract its outputs by changing into the `scripts/
 cd eks-blueprints-for-proton/scripts/cloudformation/
 ./iac.sh
 ```
+
+Once this part of the setup is completed, please resume the steps in the main README from [where you left](../../README.md#getting-started-and-one-off-configurations). 
