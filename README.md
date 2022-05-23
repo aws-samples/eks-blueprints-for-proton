@@ -89,7 +89,7 @@ You should see something like this:
 
 Now that a platform administrator has configured the template that represents the organization standard for an EKS cluster, logout from the console with the administrative principle and login back with the `protondev` user you created earlier. 
 
-> Before moving forward double-check that GitHub Actions are enabled for your repository because the next steps will eventually trigger the workflows.
+> Before moving forward double-check that GitHub Actions are enabled for your repository because the next steps will eventually trigger the workflows. To check, in your repository go to `Settings`, `Actions` then `General` and make sure `Allow all actions and reusable workflows` is selected. 
 
 Navigate to the `Environments` page in the Proton console and click `Create environment`. Select the environment template you created above and click `Configure`. In the `Provisioning` section select `Self-managed provisioning`. In the `Provisioning repository details` select `Existing repository`, in the `Repository name` select the GitHub repo you created (or forked) above and `main` as the `Branch name`. Provide an `Environment name`, an optional `Environment description` of your choice and click `Next`.
 
