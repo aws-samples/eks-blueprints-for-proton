@@ -1,6 +1,6 @@
 #### What is the goal of this tutorial?
 
-This repository includes a template example to configure AWS Proton as a vending machine for EKS clusters using Terraform. For more information about this use case please read this [blog post](). This tutorial is not intended to be used as-is for production. It provides an example of how to use Proton for this specific scenario. The template is only provided to describe "the art of possible". 
+This repository includes a template example to configure AWS Proton as a vending machine for EKS clusters using Terraform. For more information about this use case please read this [blog post](https://aws.amazon.com/blogs/containers/using-aws-proton-as-a-provisioning-mechanism-for-amazon-eks-clusters/). This tutorial is not intended to be used as-is for production. It provides an example of how to use Proton for this specific scenario. The template is only provided to describe "the art of possible". 
 
 #### Getting started and one-off configurations 
 
