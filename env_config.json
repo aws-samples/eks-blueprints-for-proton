@@ -1,7 +1,7 @@
 {
   "*": {
-    "role": "arn:aws:iam::489994096722:role/ExampleGithubRole",
+    "role": "rolename which created via terraform/iac.sh ",
     "region": "us-east-1",
-    "state_bucket":"aws-proton-terraform-hello-bucket-489994096722"
+    "state_bucket":"s3 bucket name"
   }
 }
