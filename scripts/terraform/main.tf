@@ -70,7 +70,7 @@ data "aws_caller_identity" "current" {}
 
 # This bucket will be used to store your Terraform remote state files
 resource "aws_s3_bucket" "bucket" {
-  bucket = "aws-proton-terraform-bucket-${data.aws_caller_identity.current.account_id}"
+  bucket = "aws-proton-terraform-hello-bucket-${data.aws_caller_identity.current.account_id}"
 }
 
 # explicitly block public access
