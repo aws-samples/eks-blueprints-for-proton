@@ -51,4 +51,3 @@ module "kubernetes_addons" {
 
   depends_on = [module.eks_blueprints.managed_node_groups]
 }
-

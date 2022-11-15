@@ -20,7 +20,7 @@ jobs:
   get-deployment-data:
     name: Get Deployment Data
     runs-on: ubuntu-latest
-    
+
     outputs:
       role_arn: ${{ steps.get-data.outputs.role_arn }}
       environment: ${{ steps.get-data.outputs.environment }}
@@ -31,13 +31,13 @@ jobs:
       proton_region: ${{ steps.get-data.outputs.proton_region }}
       state_bucket: ${{ steps.get-data.outputs.state_bucket }}
       is_deleted: ${{ steps.get-data.outputs.is_deleted }}
-    
+
     permissions:
       id-token: write
       contents: read
 
     continue-on-error: true
-    
+
     steps:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
@@ -49,11 +49,11 @@ jobs:
           echo "You must update env_config.json or update this workflow to not require it."
           exit 1
         fi
-      
+
     - name: Get changed files
       id: files
       uses: jitterbit/get-changed-files@v1
-      
+
     - name: Find modified resource
       id: find-modified
       run: |
@@ -75,13 +75,13 @@ jobs:
           echo "No change made to deployment-metadata.json, exiting"
           exit 1
         fi
-    
+
     - name: Get data
       id: get-data
       run: |
         modified_resource_arn=$(jq -r '.resourceMetadata.arn' ${{ steps.find-modified.outputs.deployment-metadata-path }})
         echo "::set-output name=resource_arn::$modified_resource_arn"
-        
+
         IFS=':'
         read -a split_arn <<< "$modified_resource_arn"
         proton_region=${split_arn[3]}
@@ -124,8 +124,8 @@ jobs:
         if [[ $(jq -r --arg env $environment_name 'has($env)' env_config.json) = "true" ]]; then
           role_arn=$(jq -r --arg env $environment_name '.[$env]["role"]' env_config.json)
           target_region=$(jq -r --arg env $environment_name '.[$env]["region"]' env_config.json)
-          state_bucket=$(jq -r --arg env $environment_name '.[$env]["state_bucket"]' env_config.json)   
-        else     
+          state_bucket=$(jq -r --arg env $environment_name '.[$env]["state_bucket"]' env_config.json)
+        else
           if [[ $(jq -r --arg env $environment_name 'has("*")' env_config.json) = "true" ]]; then
             role_arn=$(jq -r --arg env $environment_name '.["*"]["role"]' env_config.json)
             target_region=$(jq -r --arg env $environment_name '.["*"]["region"]' env_config.json)
@@ -135,10 +135,10 @@ jobs:
             exit 1
           fi
         fi
-        
+
         echo "::set-output name=working_directory::$working_directory"
         echo "::set-output name=environment::$environment_name"
-        
+
         echo "::set-output name=role_arn::$role_arn"
         echo "::set-output name=target_region::$target_region"
         echo "::set-output name=state_bucket::$state_bucket"
@@ -152,7 +152,7 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    
+
     defaults:
       run:
         working-directory: ${{ needs.get-deployment-data.outputs.working_directory }}
@@ -169,7 +169,7 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v2
-    
+
     - name: Configure AWS Credentials
       id: assume_role
       uses: aws-actions/configure-aws-credentials@v1
@@ -208,7 +208,7 @@ jobs:
       id: tf_apply
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       run: terraform apply -auto-approve -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
-    
+
     # If this completes, then the entire workflow has successfully completed
     - name: Mark Success
       id: mark_success
@@ -216,18 +216,18 @@ jobs:
 
   notify-proton:
     name: 'Notify Proton'
-    needs: 
+    needs:
     - get-deployment-data
     - terraform
     runs-on: ubuntu-latest
     environment: ${{ needs.get-deployment-data.outputs.environment }}
 
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.get-deployment-data.outputs.is_deleted == 'false'
-    
+
     permissions:
       id-token: write
       contents: read
-      
+
     defaults:
       run:
         working-directory: ${{ needs.get-deployment-data.outputs.working_directory }}
@@ -237,7 +237,7 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v2
-      
+
     - name: Configure AWS Credentials
       id: assume_role
       uses: aws-actions/configure-aws-credentials@v1
@@ -262,11 +262,11 @@ jobs:
 
         # Map Terraform output JSON to Proton outputs JSON
         formatted_outputs=( $(echo $outputs_json | jq "to_entries|map({key: .key, valueString: .value.value})") )
-      
+
         # Notify proton
         aws proton notify-resource-deployment-status-change --region ${{ needs.get-deployment-data.outputs.proton_region }} --resource-arn ${{ needs.get-deployment-data.outputs.resource_arn }} --status SUCCEEDED --deployment-id ${{ needs.get-deployment-data.outputs.deployment_id }} --outputs "${formatted_outputs[*]}"
-        echo "Notify success!"   
-        
+        echo "Notify success!"
+
     - name: Notify Proton Failure
       if: needs.terraform.outputs.success != 'True' || steps.tf_init.outcome != 'success'
       run: |
@@ -275,17 +275,17 @@ jobs:
 
   terraform-destroy:
     name: 'Run terraform destroy'
-    needs: 
+    needs:
     - get-deployment-data
     runs-on: ubuntu-latest
     environment: ${{ needs.get-deployment-data.outputs.environment }}
 
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.get-deployment-data.outputs.is_deleted == 'true'
-    
+
     permissions:
       id-token: write
       contents: read
-      
+
     defaults:
       run:
         working-directory: ${{ needs.get-deployment-data.outputs.working_directory }}
@@ -295,7 +295,7 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v2
-      
+
     - name: Configure AWS Credentials
       id: assume_role
       uses: aws-actions/configure-aws-credentials@v1
@@ -309,7 +309,7 @@ jobs:
     - name: Terraform Init
       id: tf_init
       run: terraform init -backend-config="bucket=${{ needs.get-deployment-data.outputs.state_bucket }}" -backend-config="key=${{ needs.get-deployment-data.outputs.working_directory }}terraform.tfstate" -backend-config="region=${{ needs.get-deployment-data.outputs.target_region }}"
-    
+
     - name: Terraform Destroy (Add-ons)
       id: tf_destroy_addons
       run: terraform apply -auto-approve -destroy -target="module.kubernetes_addons" -var="aws_region=${{ needs.get-deployment-data.outputs.target_region }}"
