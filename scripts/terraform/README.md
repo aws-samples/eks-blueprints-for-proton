@@ -6,7 +6,7 @@ This script requires that you have [Terraform installed](https://learn.hashicorp
 
 > :warning: **This sample template uses AdministratorAccess managed policy and is used for demo purpose only. You should use a more scoped down version of the policy**
 
-First export the `GITHUB_USER` variable with your own GH org/user name (this will point to your own fork of the repo): 
+First export the `GITHUB_USER` variable with your own GH org/user name (this will point to your own fork of the repo):
 ```sh
 export GITHUB_USER=<your-github-org-name>
 ```
@@ -17,4 +17,4 @@ cd scripts/terraform/
 ./iac.sh
 ```
 
-Once this part of the setup is completed, please resume the steps in the main README from [where you left](../../README.md#getting-started-and-one-off-configurations). 
+Once this part of the setup is completed, please resume the steps in the main README from [where you left](../../README.md#getting-started-and-one-off-configurations).
