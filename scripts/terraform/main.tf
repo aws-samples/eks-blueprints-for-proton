@@ -1,22 +1,32 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 4.0"
-    }
+################################################################################
+# Common Locals
+################################################################################
+
+locals {
+  tags = {
+    GithubRepo = "github.com/aws-samples/eks-blueprints-for-proton"
   }
-  required_version = "~> 1.0"
 }
 
-variable "github_org" {
-  description = "the name of the github organization"
-  type        = string
-}
+################################################################################
+# Common Data
+################################################################################
 
-variable "github_repo" {
-  description = "the name of the github repo"
-  type        = string
-}
+data "aws_caller_identity" "current" {}
+
+################################################################################
+# GitHub OIDC IAM role
+/*
+Creates the role that will be passed to Terraform to be able to deploy
+infrastructure in your AWS account. You will enter this role in your
+env_config.json file.
+
+Note that this role has administrator access to your account, so that
+it can be used to provision any infrastructure in your templates. We
+recommend you scope down the role permissions to the resources that will be used
+in your Proton templates.
+*/
+################################################################################
 
 data "tls_certificate" "github_actions_oidc_provider" {
   url = "https://token.actions.githubusercontent.com/.well-known/openid-configuration"
@@ -44,18 +54,6 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
   }
 }
 
-/*
-Creates the role that will be passed to Terraform to be able to deploy
-infrastructure in your AWS account. You will enter this role in your
-env_config.json file.
-
-Note that this role has administrator access to your account, so that
-it can be used to provision any infrastructure in your templates. We
-recommend you scope down the role permissions to the resources that will be used
-in your Proton templates.
-*/
-
-# the role that the github action runs as
 resource "aws_iam_role" "github_actions" {
   name               = "ExampleGithubRole"
   assume_role_policy = data.aws_iam_policy_document.github_actions_assume_role.json
@@ -66,29 +64,41 @@ resource "aws_iam_role_policy_attachment" "github_actions" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 
-data "aws_caller_identity" "current" {}
+################################################################################
+# Terraform remote state S3 bucket
+################################################################################
 
-# This bucket will be used to store your Terraform remote state files
-resource "aws_s3_bucket" "bucket" {
+module "terraform_state_s3_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 3.0"
+
   bucket = "aws-proton-terraform-bucket-${data.aws_caller_identity.current.account_id}"
-}
 
-# explicitly block public access
-resource "aws_s3_bucket_public_access_block" "bucket" {
-  bucket                  = aws_s3_bucket.bucket.id
+  attach_deny_insecure_transport_policy = true
+  attach_require_latest_tls_policy      = true
+
+  acl = "private"
+
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
-}
 
+  control_object_ownership = true
+  object_ownership         = "BucketOwnerPreferred"
 
-# outputs
+  versioning = {
+    status     = true
+    mfa_delete = false
+  }
 
-output "role" {
-  value = aws_iam_role.github_actions.arn
-}
+  server_side_encryption_configuration = {
+    rule = {
+      apply_server_side_encryption_by_default = {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
 
-output "bucket" {
-  value = aws_s3_bucket.bucket.bucket
+  tags = local.tags
 }
