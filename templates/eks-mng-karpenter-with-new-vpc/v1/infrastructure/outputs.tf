@@ -1,11 +1,8 @@
 output "platform_teams_configure_kubectl" {
-  description = "Configure kubectl for each Platform Team: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig"
-  value       = module.eks_blueprints.teams[0].platform_teams_configure_kubectl
-}
-
-output "application_teams_configure_kubectl" {
-  description = "Configure kubectl for each Application Teams: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig"
-  value       = module.eks_blueprints.teams[0].application_teams_configure_kubectl
+  description = "The command to use to configure the kubeconfig file to be used with kubectl."
+  value = tomap({
+    for k, v in module.eks_blueprints.teams[0].platform_teams_iam_role_arn : k => "aws eks --region ${var.aws_region} update-kubeconfig --name ${module.eks_blueprints.eks_cluster_id}  --role-arn ${v}"
+  })["platform-team"]
 }
 
 output "eks_cluster_id" {

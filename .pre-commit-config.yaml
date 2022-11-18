@@ -31,5 +31,7 @@ repos:
           - '--args=--only=terraform_required_providers'
           - '--args=--only=terraform_standard_module_structure'
           - '--args=--only=terraform_workspace_remote'
-      - id: terraform_validate
-        exclude: deploy
+      # Proton creates the variable definition for the `environment` variable and therefore it cannot be included in the
+      # variable definition file of this project; this breaks the Terraform validate command
+      # See https://docs.aws.amazon.com/proton/latest/userguide/ag-infrastructure-tmp-files-terraform.html#compiled-tform
+      # - id: terraform_validate

@@ -38,13 +38,11 @@
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region where resources will be provisioned | `string` | `"us-west-2"` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | Map of attributes passed from Proton to Terraform configuration | `any` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_application_teams_configure_kubectl"></a> [application\_teams\_configure\_kubectl](#output\_application\_teams\_configure\_kubectl) | Configure kubectl for each Application Teams: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig |
 | <a name="output_cluster_version"></a> [cluster\_version](#output\_cluster\_version) | The version of the EKS cluster |
 | <a name="output_eks_cluster_id"></a> [eks\_cluster\_id](#output\_eks\_cluster\_id) | The name of the EKS cluster |
 | <a name="output_enable_aws_for_fluentbit"></a> [enable\_aws\_for\_fluentbit](#output\_enable\_aws\_for\_fluentbit) | The flag for the Fluentbit |
@@ -53,5 +51,5 @@
 | <a name="output_enable_karpenter"></a> [enable\_karpenter](#output\_enable\_karpenter) | The flag for Karpenter |
 | <a name="output_enable_metrics_server"></a> [enable\_metrics\_server](#output\_enable\_metrics\_server) | The flag for the Metric Server |
 | <a name="output_enable_vpa"></a> [enable\_vpa](#output\_enable\_vpa) | The flag for Virtual Pod Autoscaler |
-| <a name="output_platform_teams_configure_kubectl"></a> [platform\_teams\_configure\_kubectl](#output\_platform\_teams\_configure\_kubectl) | Configure kubectl for each Platform Team: make sure you're logged in with the correct AWS profile and run the following command to update your kubeconfig |
+| <a name="output_platform_teams_configure_kubectl"></a> [platform\_teams\_configure\_kubectl](#output\_platform\_teams\_configure\_kubectl) | The command to use to configure the kubeconfig file to be used with kubectl. |
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

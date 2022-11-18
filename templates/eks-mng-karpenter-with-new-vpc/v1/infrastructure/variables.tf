@@ -4,7 +4,10 @@ variable "aws_region" {
   default     = "us-west-2"
 }
 
-variable "environment" {
-  description = "Map of attributes passed from Proton to Terraform configuration"
-  type        = any
-}
+# Proton creates the variable definition for this variable and therefore it should not be included
+# in this variable definition file.
+# See https://docs.aws.amazon.com/proton/latest/userguide/ag-infrastructure-tmp-files-terraform.html#compiled-tform
+# variable "environment" {
+#   description = "Map of attributes passed from Proton to Terraform configuration"
+#   type        = any
+# }
