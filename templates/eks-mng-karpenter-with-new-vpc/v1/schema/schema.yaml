@@ -53,3 +53,18 @@ schema:
           title: "Enable Karpenter Add-On"
           type: boolean
           default: true
+        aws_region:
+          title: AWS Region
+          type: string
+          description: AWS Region where resources will reside
+          default: us-east-1
+        tf_state_bucket:
+          title: Terraform state storage S3 bucket
+          type: string
+          description: S3 Bucket to store Terraform state
+          default: s3-bucket-name-here
+        tf_state_bucket_region:
+          title: State bucket AWS Region
+          type: string
+          description: AWS Region where state bucket resides
+          default: us-east-1
