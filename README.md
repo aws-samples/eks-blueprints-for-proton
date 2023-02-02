@@ -18,13 +18,14 @@ Once you are done, go to the Proton console and switch to the `Settings/Reposito
 
 ![proton_registry](images/proton_registry.png)
 
-For Terraform to be able to deploy (or "vend") EKS clusters, it needs to assume a proper IAM role. In addition, since for our solution we will use Terraform open source, we also need an S3 bucket to save the Terraform state. To do this please follow the instructions [at this page](./scripts/README.md).
+- Create s3 bucket for terraform state.
+ 
+- Create CodeBuild provisioning role
+    - To create a new role with CodeBuild permissions:
+        [Review the permissions documentation](https://docs.aws.amazon.com/proton/latest/userguide/ag-env-codebuild-provisioning-role-creation.html) to determine what permissions you need.
+    - Go to the IAM console  to create your role with the necessary permissions, this role must trust CodeBuild.
 
-Retrieve the role ARN and the S3 bucket name from the output of the IaC above and update the [env-config.json](./env_config.json) file in your GitHub repository. Make sure to update the `region` parameter to the region you are using.
-
-> Remember to commit and push these changes to your GitHub repository now
-
-Create an IAM user that you will be using to represent the developer persona (i.e. the person that will request the cluster). Call it `protondev` and attach the AWS managed `AWSProtonDeveloperAccess` policy.
+- Create an IAM user that you will be using to represent the developer persona (i.e. the person that will request the cluster). Call it `protondev` and attach the AWS managed `AWSProtonDeveloperAccess` policy.
 
 This user needs a bit more power in addition to the managed `AWSProtonDeveloperAccess` IAM policy: because, in Proton, a developer with the standard `AWSProtonDeveloperAccess` is not allowed to deploy an environment, you need to add the ability to `CreateEnvironment`, `UpdateEnvironment`, `DeleteEnvironment` as well as to `PassRole` (to the Proton service). In addition, to use the `aws eks update-kubeconfig` command to create the `config` file that kubectl will use, the `protondev` must be able to `DescribeCluster`. Lastly, for convenience if you want to use the Cloud Shell with the `protondev` user, that policy must be allowed explicitly.  
 
@@ -89,14 +90,24 @@ You should see something like this:
 
 Now that a platform administrator has configured the template that represents the organization standard for an EKS cluster, logout from the console with the administrative principle and login back with the `protondev` user you created earlier.
 
-> Before moving forward double-check that GitHub Actions are enabled for your repository because the next steps will eventually trigger the workflows. To check, in your repository go to `Settings`, `Actions` then `General` and make sure `Allow all actions and reusable workflows` is selected.
+ 
 
-Navigate to the `Environments` page in the Proton console and click `Create environment`. Select the environment template you created above and click `Configure`. In the `Provisioning` section select `Self-managed provisioning`. In the `Provisioning repository details` select `Existing repository`, in the `Repository name` select the GitHub repo you created (or forked) above and `main` as the `Branch name`. Provide an `Environment name`, an optional `Environment description` of your choice and click `Next`.
+Navigate to the `Environments` page in the Proton console and click `Create environment`. Select the environment template you created above and click `Configure`. 
 
-Give your cluster a name, leave the vpc_cidr as is and add your AWS IAM user (`protondev`) to the input `user`. You should now see something like this:
+- Enter the value for `Environment name`
+- In `AWS-managed provisioning role` 
+   - select option `AWS-managed provisioning role`
+- Enter the value for `CodeBuild provisioning role`
+- Click 'Next' button
 
+You will see the EKS input variable form
+- Give your cluster a name, leave the vpc_cidr as is 
+- Add your AWS IAM user (protondev) to the input user 
+- Add Terraform state storage S3 bucket name. 
+- Add Terraform state storage S3 bucket
+
+You should now see something like this:
 ![configure_cluster_deployment](images/configure_cluster_deployment.png)
-
 
 The EKS Blueprints will enable the user you enter to assume an IAM role that has been defined as a Kubernetes cluster admin in the K8s RBAC (we'll play with this later). The list of add-ons has been provided as an example. Flag or unflag them at your discretion. Should you use this solution in production you may want to check in the EKS Blueprints all the add-ons supported and include what you need in your own Proton template. For example, you may want to expose the size of the cluster either in terms of nodes (min, max) or in t-shirt sizes (small, medium, large). This example template hard code the size of the cluster, but it's really all up to the platform team to decide what parameters to expose to developers.
 
@@ -104,16 +115,19 @@ This is where the magic happens. The input parameters you see here (which are ob
 
 Click `Next` and in the next summary form click `Create`. This will kick off your cluster creation.
 
-This will trigger the following process:
-- Proton will merge the Terraform template with your inputs and create a PR in the repository you specified (in our tutorial it's the same repository that hosts the template, but you probably want these to be two separate repositories in a production setup - just remember to add them both to the Proton `Repositories` page you configured at the beginning)
-- The [GitHub action example that ships with this repository](.github/workflows/proton-run.yml) will trigger to run a plan and check everything is in good shape
-- The PR will be created (its merging can be a manual step performed by a platform administrator upon a code review or, because Proton creates enough guardrails for the PR to be legit, the repository can be configured to perform an auto-merge)
-- Once the PR is merged the GH action provided as an example in the repository will kick off again and this time it will go till the `terraform apply` stage effectively deploying the cluster
-- When the `apply` has completed the action will notify Proton with the `output` which consists, among other things, of the `eks aws` command to configure the `config` file to point `kubectl` to the cluster you just deployed.
+This will trigger the codepipeline to provision the infrostructure.
 
-> Note: if you want to know more about how Terraform templating and Git provisioning works in Proton, please refer to these two blogs posts: [AWS Proton Terraform Templates](https://aws.amazon.com/blogs/containers/aws-proton-terraform-templates/) and [AWS Proton Self-Managed Provisioning](https://aws.amazon.com/blogs/containers/aws-proton-self-managed-provisioning/).
+You can get the codepipeline link on environment dahsboard like this
 
-It will take roughly 15/20 minutes to deploy, and you can watch progress in the GitHub Actions workflow. When the workflow completes you should see something like this in your Proton console for the environment you have just deployed:
+![codepipeline_link](images/codebuildlink.png)
+
+
+Click the above link to check the build logs
+
+![codebuild_logs](images/codebuildlogs.png)
+
+
+ It will take roughly 15/20 minutes to deploy, and you can watch progress in the GitHub Actions workflow. When the workflow completes you should see something like this in your Proton console for the environment you have just deployed:
 
 ![cluster_summary](images/cluster_summary.png)
 
@@ -187,13 +201,13 @@ Remember this solution allows a central platform team to maintain a set of stand
         kubernetes_version:
           type: string
           description: Kubernetes Version
-          enum: ["1.20", "1.21"]
-          default: "1.21"
+          enum: ["1.23", "1.24"]
+          default: "1.24"
 ```
 
 When you push this commit to your repository in GitHub, Proton will detect the change in the template. If you login with the administrative user you will see in the details of your `Environment template` that there is a new version in the `Draft` stage. You can click `Publish`, and it will become the new default minor version for that template.
 
-This means that every cluster a developer will deploy with this template can be deployed with either versions (because `1.20` and `1.21` are both valid options). However, it is also possible to upgrade an existing 1.20 cluster to the new 1.21 version.
+This means that every cluster a developer will deploy with this template can be deployed with either versions (because `1.23` and `1.24` are both valid options). However, it is also possible to upgrade an existing 1.23 cluster to the new 1.24 version.
 
 Your environment template should now look like this:
 
@@ -211,7 +225,7 @@ In our scenario, you have to go to the Proton environment and click `Update mino
 
 ![update_environment](images/update_environment.png)
 
-At the next screen leave everything unchanged and click `Edit` to get access and update your cluster parameters. Here you can set the cluster version to 1.21:
+At the next screen leave everything unchanged and click `Edit` to get access and update your cluster parameters. Here you can set the cluster version to 1.24:
 
 ![edit_cluster_params](images/edit_cluster_params.png)
 
@@ -219,10 +233,9 @@ Click `Next` and then `Update`.
 
 This will trigger a workflow identical to the one we triggered with the deployment. Terraform, in this case, will `apply` the configuration to an existing cluster and the logic inside the EKS Blueprints module will know how to upgrade an EKS cluster. At the end of this process the GitHub action will notify Proton that the upgrade has completed.
 
-Please note that Kubernetes versions are a moving target. The examples in this README file refer to setting up version 1.20 and upgrading it to 1.21. Over time, your setup will require to use new EKS Blueprints module versions (as defined in the [main.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/main.tf) file and different Kubernetes cluster versions as defined in the [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file.
+Please note that Kubernetes versions are a moving target. The examples in this README file refer to setting up version 1.23 and upgrading it to 1.24. Over time, your setup will require to use new EKS Blueprints module versions (as defined in the [main.tf](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/infrastructure/main.tf) file and different Kubernetes cluster versions as defined in the [schema.yaml](https://github.com/aws-samples/eks-blueprints-for-proton/blob/main/templates/eks-mng-karpenter-with-new-vpc/v1/schema/schema.yaml) file.
 
 > Note: Kubernetes cluster upgrades are often heavy operations that have ramifications into add-on components and modules you use. In some cases they also have ramifications into how applications running on Kubernetes are defined. While EKS Blueprints help in that regard, it's important that you test these upgrades throughout. Also consider that there are a number of strategies you can use to surface Kubernetes versions in your Proton templates. In our quick example we have shown how to have multiple Kubernetes versions in the same template but another tactic could be to separate Kubernetes versions in dedicated Proton major template versions (in a 1:1 mapping between the Kubernetes version and the Proton template major version). Each approach has advantages and disadvantages that you need to factor in. You can read more about Proton templates versions [here](https://docs.aws.amazon.com/proton/latest/adminguide/ag-template-versions.html).  
 
 #### Deleting the cluster
-
-When you are done with the test you may want to delete the cluster to avoid incurring into undesired infrastructure costs. From the Proton console go into the environment you have deployed and select `Delete`. This will trigger the same workflow of the deployment and the update. Proton will open a PR against the repository which, when merged, will call the Terraform destroy workflows defined in GitHub Actions.
+When you are done with the test you may want to delete the cluster to avoid incurring into undesired infrastructure costs. From the Proton console go into the environment you have deployed and select Delete. 
