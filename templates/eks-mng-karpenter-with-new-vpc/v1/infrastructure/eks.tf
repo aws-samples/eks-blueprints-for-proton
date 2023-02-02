@@ -3,7 +3,7 @@
 #-------------------------------------------------------------------
 
 module "eks_blueprints" {
-  source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.16.0"
+  source = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.21.0"
 
   cluster_name    = local.name
   cluster_version = var.environment.inputs.kubernetes_version
