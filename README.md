@@ -18,55 +18,10 @@ Once you are done, go to the Proton console and switch to the `Settings/Reposito
 
 ![proton_registry](images/proton_registry.png)
 
-- Create s3 bucket for terraform state.
- 
-- Create CodeBuild provisioning role
-    - To create a new role with CodeBuild permissions:
-        [Review the permissions documentation](https://docs.aws.amazon.com/proton/latest/userguide/ag-env-codebuild-provisioning-role-creation.html) to determine what permissions you need.
-    - Go to the IAM console  to create your role with the necessary permissions, this role must trust CodeBuild.
-
-- Create an IAM user that you will be using to represent the developer persona (i.e. the person that will request the cluster). Call it `protondev` and attach the AWS managed `AWSProtonDeveloperAccess` policy.
-
-This user needs a bit more power in addition to the managed `AWSProtonDeveloperAccess` IAM policy: because, in Proton, a developer with the standard `AWSProtonDeveloperAccess` is not allowed to deploy an environment, you need to add the ability to `CreateEnvironment`, `UpdateEnvironment`, `DeleteEnvironment` as well as to `PassRole` (to the Proton service). In addition, to use the `aws eks update-kubeconfig` command to create the `config` file that kubectl will use, the `protondev` must be able to `DescribeCluster`. Lastly, for convenience if you want to use the Cloud Shell with the `protondev` user, that policy must be allowed explicitly.  
-
-The following is an inline policy for the `protondev` user to add these additional permissions required:
-```
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": "iam:PassRole",
-            "Resource": "*",
-            "Condition": {
-                "StringEquals": {
-                    "iam:PassedToService": "proton.amazonaws.com"
-                }
-            }
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "proton:CreateEnvironment",
-                "proton:UpdateEnvironment",
-                "proton:DeleteEnvironment",
-                "iam:ListRoles"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": "eks:DescribeCluster",
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": "cloudshell:*",
-            "Resource": "*"
-        }
-    ]
-}
-```
+- Create s3 bucket for terraform state and IAM user.
+   -  Prior to running Terraform in Proton, you'll need a place to store Terraform state. For the examples, you'll use an AWS S3 bucket for this purpose.
+   - You also need a IAM user `protondev`
+   Create s3bucket and IAM user  using the Terraform configuration located in the [bootstrap](./bootstrap/README.md) directory.
 
 #### Create the environment template in Proton
 
