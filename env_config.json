@@ -1,7 +1,7 @@
 {
   "*": {
-    "role": "arn:aws:iam::656096645154:policy/AWSProtonDeveloperAccess",
-    "region": "us-east-1",
-    "state_bucket":"arn:aws:s3:::protons3bucket"
+    "role": "arn:aws:iam::656096645154:policy/Protonpolicy"
+    "region": "us-east-1"
+    "state_bucket": "arn:aws:s3:::protons3bucket"
   }
 }
