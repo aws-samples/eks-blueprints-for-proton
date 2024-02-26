@@ -68,7 +68,7 @@ jobs:
             echo "setting found to true"
             found=true
             echo "setting outputs"
-            echo "::set-output name=deployment-metadata-path::$changed_file"
+            echo "deployment-metadata-path=$changed_file" >> "$GITHUB_OUTPUT"
           fi
         done
         if [[ "$found" == false ]]; then
@@ -80,18 +80,18 @@ jobs:
       id: get-data
       run: |
         modified_resource_arn=$(jq -r '.resourceMetadata.arn' ${{ steps.find-modified.outputs.deployment-metadata-path }})
-        echo "::set-output name=resource_arn::$modified_resource_arn"
+        echo "resource_arn=$modified_resource_arn" >> "$GITHUB_OUTPUT"
 
         IFS=':'
         read -a split_arn <<< "$modified_resource_arn"
         proton_region=${split_arn[3]}
-        echo "::set-output name=proton_region::$proton_region"
+        echo "proton_region=$proton_region" >> "$GITHUB_OUTPUT"
 
         deployment_id=$(jq -r '.deploymentId' ${{ steps.find-modified.outputs.deployment-metadata-path }})
-        echo "::set-output name=deployment_id::$deployment_id"
+        echo "deployment_id=$deployment_id" >> "$GITHUB_OUTPUT"
 
         is_deleted=$(jq -r '.isResourceDeleted' ${{ steps.find-modified.outputs.deployment-metadata-path }})
-        echo "::set-output name=is_deleted::$is_deleted"
+        echo "is_deleted=$is_deleted" >> "$GITHUB_OUTPUT"
 
 
         if [[ "$modified_resource_arn" == *":environment/"* ]]; then
@@ -136,12 +136,12 @@ jobs:
           fi
         fi
 
-        echo "::set-output name=working_directory::$working_directory"
-        echo "::set-output name=environment::$environment_name"
+        echo "working_directory=$working_directory" >> "$GITHUB_OUTPUT"
+        echo "environment=$environment_name" >> "$GITHUB_OUTPUT"
 
-        echo "::set-output name=role_arn::$role_arn"
-        echo "::set-output name=target_region::$target_region"
-        echo "::set-output name=state_bucket::$state_bucket"
+        echo "role_arn=$role_arn" >> "$GITHUB_OUTPUT"
+        echo "target_region=$target_region" >> "$GITHUB_OUTPUT"
+        echo "state_bucket=$state_bucket" >> "$GITHUB_OUTPUT"
 
   terraform:
     name: 'Terraform'
@@ -212,7 +212,7 @@ jobs:
     # If this completes, then the entire workflow has successfully completed
     - name: Mark Success
       id: mark_success
-      run: echo "::set-output name=success::True"
+      run: echo "success=True" >> "$GITHUB_OUTPUT"
 
   notify-proton:
     name: 'Notify Proton'
