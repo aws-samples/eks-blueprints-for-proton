@@ -1,6 +1,6 @@
 {
   "*": {
-    "role": "arn:aws:s3:::protons4bucket-1",
+    "role": "arn:aws:iam::274073291313:role/githubrole",
     "region": "ap-southeast-1",
     "state_bucket":"protons4bucket-1"
   }
