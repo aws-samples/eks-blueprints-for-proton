@@ -1,7 +1,7 @@
 {
   "*": {
-    "role": "arn:aws:iam::111111111111:role/REPLACE_ME",
-    "region": "us-west-2",
-    "state_bucket":"REPLACE_ME"
+    "role": "arn:aws:s3:::protons4bucket-1",
+    "region": "ap-southeast-1",
+    "state_bucket":"protons4bucket-1"
   }
 }
